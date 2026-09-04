@@ -1,7 +1,7 @@
 import React from 'react'
 import { expect } from 'chai'
 
-import TimelineEvent from '../src/timeline-event/index.jsx'
+import TimelineEvent from '../src/timeline-event/index.js'
 import { DEFAULT_LABELS } from '../src/labels.mjs'
 import { render } from './helpers/render.jsx'
 

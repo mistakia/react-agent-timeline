@@ -1,6 +1,6 @@
-export { default } from './src/agent-session-timeline/index.jsx'
-export { default as AgentSessionTimeline } from './src/agent-session-timeline/index.jsx'
-export { default as TimelineEvent } from './src/timeline-event/index.jsx'
+export { default } from './src/agent-session-timeline/index.js'
+export { default as AgentSessionTimeline } from './src/agent-session-timeline/index.js'
+export { default as TimelineEvent } from './src/timeline-event/index.js'
 
 export {
   entry_index,

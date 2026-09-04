@@ -1,27 +1,26 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import TimelineEventRow from '../timeline-event-row.jsx'
-import EntryBody from '../entry-body.jsx'
+import TimelineEventRow from '../timeline-event-row.js'
+import EntryBody from '../entry-body.js'
 import { stringify_content } from '../../entry-shape.mjs'
 import { labels_prop_type } from '../../labels.mjs'
 
-import './system-message.styl'
+import './assistant-message.styl'
 
-export default function SystemMessage({ entry, labels }) {
+export default function AssistantMessage({ entry, labels }) {
   const text = stringify_content(entry?.content)
 
   return (
     <TimelineEventRow
-      modifier="system-message"
-      label={labels.system}
-      is_muted
+      modifier="assistant-message"
+      label={labels.assistant}
       body={<EntryBody entry={entry} text={text} labels={labels} />}
     />
   )
 }
 
-SystemMessage.propTypes = {
+AssistantMessage.propTypes = {
   entry: PropTypes.object.isRequired,
   labels: labels_prop_type.isRequired
 }

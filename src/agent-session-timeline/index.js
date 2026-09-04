@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import TimelineEvent from '../timeline-event/index.jsx'
+import TimelineEvent from '../timeline-event/index.js'
 import { latest_entry, order_entries } from './order-entries.mjs'
 import { labels_prop_type, resolve_labels } from '../labels.mjs'
 

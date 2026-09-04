@@ -1,7 +1,7 @@
 import React from 'react'
 import { expect } from 'chai'
 
-import AgentSessionTimeline from '../src/agent-session-timeline/index.jsx'
+import AgentSessionTimeline from '../src/agent-session-timeline/index.js'
 import { DEFAULT_LABELS } from '../src/labels.mjs'
 import { render } from './helpers/render.jsx'
 

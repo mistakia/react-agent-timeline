@@ -1,8 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import TimelineEventRow from '../timeline-event-row.jsx'
-import EntryBody from '../entry-body.jsx'
+import TimelineEventRow from '../timeline-event-row.js'
+import EntryBody from '../entry-body.js'
 import {
   ENTRY_KIND,
   entry_kind,

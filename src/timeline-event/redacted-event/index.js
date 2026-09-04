@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import TimelineEventRow from '../timeline-event-row.jsx'
+import TimelineEventRow from '../timeline-event-row.js'
 import { labels_prop_type } from '../../labels.mjs'
 
 import './redacted-event.styl'
