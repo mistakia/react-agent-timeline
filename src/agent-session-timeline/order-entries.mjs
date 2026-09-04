@@ -11,6 +11,13 @@
 //
 // JSX-free and .mjs so it is importable by bare Node ESM.
 
+import {
+  entry_summary_text,
+  is_elided_entry,
+  is_redacted_entry,
+  to_single_line
+} from '../entry-shape.mjs'
+
 // Index-less entries sort after every stamped entry, preserving their relative
 // insertion order (Array.prototype.sort is stable, so equal keys never move).
 const INDEX_LAST = Number.MAX_SAFE_INTEGER
@@ -100,16 +107,51 @@ export function order_entries(entries) {
 }
 
 /**
- * The entry the collapsed row shows. Never the last array element — a backfill
- * overlapping a live tail arrives out of order, and array position would show
- * whichever copy landed last.
+ * Whether an entry has anything for the collapsed row to say.
+ *
+ * Both degraded shapes count as content and must never be skipped: a redacted
+ * entry renders the masking affordance, which is how a permission failure
+ * becomes visible, and an elided entry renders its placeholder.
+ */
+export function has_display_content(entry) {
+  if (!entry) return false
+  if (is_redacted_entry(entry) || is_elided_entry(entry)) return true
+  return to_single_line(entry_summary_text(entry)).length > 0
+}
+
+/**
+ * The entry the collapsed row shows.
+ *
+ * Never the last array element — a backfill overlapping a live tail arrives out
+ * of order, and array position would show whichever copy landed last.
+ *
+ * Contentless entries are skipped, which is not cosmetic. Measured against a
+ * real generation run: the two highest-ordered entries were `system`/`status`
+ * with empty content, so the collapsed row rendered the word "System" and
+ * nothing else while the run's actual answer sat three entries earlier. The
+ * whole point of this surface is that a user sees what the agent did, and a
+ * blank latest row is the paraphrased progress line's failure in a new costume.
+ *
+ * Falls back to the plain advance-winner when NO entry has content, so a
+ * timeline of nothing but empty entries still reports its latest rather than
+ * disappearing.
  */
 export function latest_entry(entries) {
   if (!Array.isArray(entries)) return null
+
   let latest = null
+  let latest_with_content = null
+
   for (const entry of entries) {
     if (!entry) continue
     if (is_latest_event_advance(entry, latest)) latest = entry
+    if (
+      has_display_content(entry) &&
+      is_latest_event_advance(entry, latest_with_content)
+    ) {
+      latest_with_content = entry
+    }
   }
-  return latest
+
+  return latest_with_content || latest
 }
