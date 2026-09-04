@@ -1,0 +1,39 @@
+// react-agent-timeline design tokens.
+//
+// Every .styl file in this package imports this one at its top. That is not a
+// convention, it is what makes the package self-sufficient: a consumer whose
+// stylus rule injects only its OWN variables would otherwise compile our files
+// with every $rat_* undefined, and Stylus emits nothing for an unknown variable
+// rather than erroring. The failure is a silently blank declaration, not a
+// build error.
+//
+// Values indirect through --rat-* CSS custom properties so a consumer can
+// restyle at runtime by redefining them on :root (or any ancestor scope),
+// without rebuilding the package.
+
+$rat_bg = var(--rat-bg, #ffffff)
+$rat_bg_subtle = var(--rat-bg-subtle, #f7f8f9)
+$rat_bg_hover = var(--rat-bg-hover, rgba(15, 23, 42, 0.04))
+$rat_border = var(--rat-border, #e6e8eb)
+$rat_divider = var(--rat-divider, #eef0f2)
+
+$rat_text = var(--rat-text, #1f2328)
+$rat_text_muted = var(--rat-text-muted, #57606a)
+$rat_text_subtle = var(--rat-text-subtle, #6e7781)
+$rat_text_error = var(--rat-text-error, #b3261e)
+$rat_accent = var(--rat-accent, #0969da)
+
+$rat_space_xs = var(--rat-space-xs, 2px)
+$rat_space_sm = var(--rat-space-sm, 4px)
+$rat_space = var(--rat-space, 8px)
+$rat_space_lg = var(--rat-space-lg, 12px)
+
+$rat_radius_sm = var(--rat-radius-sm, 3px)
+$rat_radius = var(--rat-radius, 6px)
+
+$rat_font_size_sm = var(--rat-font-size-sm, 11px)
+$rat_font_size_md = var(--rat-font-size-md, 13px)
+$rat_font_mono = var(--rat-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace)
+
+$rat_row_min_height = var(--rat-row-min-height, 24px)
+$rat_expanded_max_height = var(--rat-expanded-max-height, 320px)

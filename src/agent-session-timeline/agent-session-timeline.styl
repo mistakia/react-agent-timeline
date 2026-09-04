@@ -1,0 +1,40 @@
+@import '../styles/tokens.styl'
+
+.rat-timeline
+  display flex
+  flex-direction column
+  gap $rat_space_sm
+  color $rat_text
+  font-size $rat_font_size_md
+
+.rat-timeline-entries
+  display flex
+  flex-direction column
+  min-width 0
+
+// Expansion is where an unbounded list would grow the host panel instead of
+// scrolling inside it. A fifteen-minute run is hundreds of entries.
+.rat-timeline-expanded .rat-timeline-entries
+  max-height $rat_expanded_max_height
+  overflow-y auto
+  border 1px solid $rat_border
+  border-radius $rat_radius
+  background $rat_bg
+
+.rat-timeline-empty
+  padding $rat_space_xs $rat_space
+  color $rat_text_subtle
+
+.rat-timeline-toggle
+  align-self flex-start
+  padding $rat_space_xs $rat_space_sm
+  border none
+  border-radius $rat_radius_sm
+  background transparent
+  color $rat_accent
+  font-size $rat_font_size_sm
+  font-weight 600
+  cursor pointer
+
+  &:hover
+    background $rat_bg_hover

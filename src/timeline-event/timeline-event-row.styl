@@ -1,0 +1,38 @@
+@import '../styles/tokens.styl'
+
+.rat-event-row
+  display flex
+  align-items baseline
+  gap $rat_space
+  min-height $rat_row_min_height
+  padding $rat_space_xs $rat_space
+  border-radius $rat_radius_sm
+  color $rat_text
+  font-size $rat_font_size_md
+  line-height 1.4
+
+.rat-event-label
+  flex none
+  font-size $rat_font_size_sm
+  font-weight 600
+  letter-spacing 0.02em
+  text-transform uppercase
+  color $rat_text_subtle
+
+.rat-event-body
+  flex 1 1 auto
+  min-width 0
+  overflow-wrap anywhere
+  white-space pre-wrap
+
+.rat-event-row-muted .rat-event-body
+  color $rat_text_muted
+  font-style italic
+
+.rat-event-row-tool-call .rat-event-body
+.rat-event-row-tool-result .rat-event-body
+  font-family $rat_font_mono
+  font-size $rat_font_size_sm
+
+.rat-event-row-tool-error .rat-event-body
+  color $rat_text_error
