@@ -1,0 +1,26 @@
+{
+  "name": "react-agent-timeline",
+  "version": "0.1.0",
+  "description": "Presentational React component rendering an agent session timeline, collapsed to the latest event and expandable.",
+  "license": "MIT",
+  "repository": "github:mistakia/react-agent-timeline",
+  "type": "module",
+  "sideEffects": ["*.styl"],
+  "scripts": {
+    "lint": "eslint . --ext js,jsx",
+    "test": "mocha --recursive './test/**/*.test.js'",
+    "prettier": "prettier --write '{src,test}/**/*.{js,jsx,styl}' index.js",
+    "verify": "yarn lint && yarn test"
+  },
+  "peerDependencies": {
+    "@mui/material": "^5 || ^6",
+    "prop-types": "^15",
+    "react": "^18 || ^19",
+    "react-dom": "^18 || ^19"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "mocha": "^10.4.0",
+    "prettier": "^3.2.5"
+  }
+}
