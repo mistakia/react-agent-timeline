@@ -1,2 +1,12 @@
 node_modules/
 .DS_Store
+
+# Yarn Berry: the vendored release and patches are committed so a clone can
+# install without a preinstalled yarn; everything else it writes is local state.
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+yarn-error.log
