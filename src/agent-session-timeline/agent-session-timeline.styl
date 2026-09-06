@@ -12,11 +12,27 @@
   flex-direction column
   min-width 0
 
+// THE COLLAPSED ROW IS ONE LINE, AND HOLDING THAT IS WHAT MAKES IT STREAM.
+// It shows whatever the agent is doing right now, which is unbounded text -- an
+// assistant message or a multi-kilobyte tool result. Wrapped, the row is as
+// tall as the newest entry happens to be, so the panel and everything below it
+// jump on every live entry and the surface is unreadable for exactly the run
+// worth watching. Clamped, the text changes in place and nothing moves.
+.rat-timeline:not(.rat-timeline-expanded) .rat-event-body
+  white-space nowrap
+  overflow hidden
+  text-overflow ellipsis
+
 // Expansion is where an unbounded list would grow the host panel instead of
 // scrolling inside it. A fifteen-minute run is hundreds of entries.
+//
+// `overflow-anchor: none` because the browser's own scroll anchoring fights the
+// pin: appending below the viewport is exactly the case Chrome anchors against,
+// and it holds the previous entry in place a moment after our scroll write.
 .rat-timeline-expanded .rat-timeline-entries
   max-height $rat_expanded_max_height
   overflow-y auto
+  overflow-anchor none
   border 1px solid $rat_border
   border-radius $rat_radius
   background $rat_bg
@@ -25,7 +41,13 @@
   padding $rat_space_xs $rat_space
   color $rat_text_subtle
 
+.rat-timeline-footer
+  display flex
+  align-items center
+  gap $rat_space
+
 .rat-timeline-toggle
+.rat-timeline-jump
   align-self flex-start
   padding $rat_space_xs $rat_space_sm
   border none
@@ -38,3 +60,10 @@
 
   &:hover
     background $rat_bg_hover
+
+.rat-timeline-jump
+  background $rat_bg_subtle
+
+.rat-timeline-duration
+  color $rat_text_subtle
+  font-size $rat_font_size_sm

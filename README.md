@@ -4,6 +4,12 @@ A presentational React component that renders an agent session timeline: collaps
 
 Props in, JSX out. No Redux, no router, no fetch, and no knowledge of where entries came from — every domain label comes from the consumer.
 
+## Behaviour worth knowing before you use it
+
+- **Collapsed is one line, and it streams.** The row is derived from `entries`, so it advances on its own as they arrive; it is clamped to a single line because the newest entry is unbounded text and a wrapping row makes the host panel jump on every tick.
+- **Expanded reads bottom-up, like a message chat.** It opens at the newest entry and follows new ones, unless the reader scrolls away — then nothing moves under them and a jump-to-latest control appears until they return to the bottom.
+- **`duration_ms` is rendered, never computed.** The consumer knows what started and finished the run; the package formats the number it is handed and shows nothing when handed none.
+
 ## Design rules
 
 Three properties are load-bearing and easy to break silently:

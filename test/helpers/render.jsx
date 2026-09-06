@@ -20,6 +20,14 @@ export function render(element) {
   return {
     container,
     text: () => container.textContent,
+    // Re-rendering into the SAME root is what makes a streaming test real: a
+    // fresh mount per frame would re-run every mount effect, so the pin would
+    // re-engage on its own and a broken follow-the-bottom rule would still pass.
+    rerender: (next) => {
+      act(() => {
+        root.render(next)
+      })
+    },
     unmount: () => {
       act(() => root.unmount())
       container.remove()
