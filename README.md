@@ -20,4 +20,6 @@ Three properties are load-bearing and easy to break silently:
 
 ## Consuming
 
-Both consumers import source from `src/` and compile the JSX themselves; there is no build step and no `dist/`. A consumer's babel-loader must be told not to exclude this package.
+The consumer imports source from `src/` and compiles the JSX itself; there is no build step and no `dist/`. A consumer's babel-loader must be told not to exclude this package.
+
+League is the consuming application. Base is deliberately not migrated onto this package — it keeps its own virtualized list and per-tool renderer registry, which this package does not carry — so league's consumption is the whole surface this component serves.
