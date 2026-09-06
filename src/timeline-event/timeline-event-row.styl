@@ -1,6 +1,21 @@
 @import '../styles/tokens.styl'
 
 .rat-event-row
+  // THE ROW IS ALSO A FLEX ITEM, and this is the declaration that keeps it from
+  // being crushed by the list above it.
+  //
+  // `.rat-timeline-entries` is a column flex container, and expanded it carries
+  // a max-height and scrolls. That makes its height DEFINITE, so its items
+  // resolve `flex-shrink: 1` against it and every row is squeezed toward the
+  // 24px floor below while its wrapped body still needs its full height. The
+  // overflow is not clipped -- it paints over the row underneath, so a run of
+  // multi-line tool calls renders as lines of text stacked on top of each
+  // other, which is what the surface looked like before this line: rows 28px
+  // tall holding 48px of text, each one bleeding 20px into its neighbour.
+  //
+  // `min-height` is NOT the guard against this -- it is the floor the shrink
+  // squeezes down TO.
+  flex none
   display flex
   align-items baseline
   gap $rat_space

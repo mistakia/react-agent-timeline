@@ -37,6 +37,14 @@
   border-radius $rat_radius
   background $rat_bg
 
+// Where one entry ends and the next begins, which nothing else says once the
+// bodies wrap. An expanded run is mostly multi-line tool arguments set flush
+// against each other, and with no blank line between them the list reads as one
+// block of text with a label column beside it. Between entries only -- a rule
+// under the last one draws a floor part-way down the scroll box.
+.rat-timeline-expanded .rat-event-row + .rat-event-row
+  border-top 1px solid $rat_divider
+
 .rat-timeline-empty
   padding $rat_space_xs $rat_space
   color $rat_text_subtle
