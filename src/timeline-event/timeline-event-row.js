@@ -31,6 +31,10 @@ export default function TimelineEventRow({
   if (modifier) class_names.push(`rat-event-row-${modifier}`)
   if (is_muted) class_names.push('rat-event-row-muted')
   if (on_toggle) class_names.push('rat-event-row-expandable')
+  // Open versus revealable: `expandable` promises the row CAN open, `open` says
+  // it HAS. The stylesheet pins `.rat-event-row-main` while its row is open so
+  // a tall revealed result scrolling in the panel keeps the tool name in view.
+  if (is_expanded) class_names.push('rat-event-row-open')
 
   const main = (
     <>

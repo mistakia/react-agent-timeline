@@ -92,17 +92,21 @@
 
 // A revealed tool result, set behind a rule rather than inside a box.
 //
-// The indent plus the left rule is the whole containment device here: it says
+// The indent plus an inset top rule is the containment device here: it says
 // "this belongs to the row above" without drawing a card, which is the one
-// thing the consuming design system rules out. The rule is also what keeps a
-// multi-line result from reading as a sibling entry once it wraps.
+// thing the consuming design system rules out. A left rule was the original
+// device and read as a quote or an error margin next to every open result, so
+// it is gone and the seam moved to the top edge, where the boundary it draws is
+// between the row's own header and its continuation rather than between the
+// result and the page.
 .rat-event-detail
   margin $rat_space_xs 0 $rat_space_sm 0
-  // Indents past the marker slot and the gap, so the rule hangs under the
+  // Indents past the marker slot and the gap, so the seam hangs under the
   // label rather than under the row's left edge.
   margin-left $rat_space_lg
+  border-top 1px solid $rat_border
+  padding-top $rat_space_sm
   padding-left $rat_space_lg
-  border-left 1px solid $rat_border
   max-height $rat_detail_max_height
   overflow-y auto
   color $rat_text_muted
@@ -114,3 +118,26 @@
 
 .rat-event-detail-error
   color $rat_text_error
+
+// THE HEADER OF AN OPEN ROW STAYS PUT WHILE ITS RESULT SCROLLS, scoped to the
+// expanded list (the only place a row's main and its fate can be separated by
+// more than the row's own height).
+//
+// `.rat-event-row` is a column flex of main-over-detail, and the entries list
+// is the scroll container, so sticking the main at the container's top keeps
+// the tool name readable for a result taller than the panel -- exactly the
+// result the reader opened. Sticky is bounded by the row's own box, so the
+// header releases the moment the ROW scrolls past, never lingering over a
+// sibling entry.
+//
+// The opaque ground is what hides the neighbouring row sliding underneath; a
+// transparent header would print two entries' text over each other. User
+// message rows carry their own ground, so they keep it.
+.rat-timeline-expanded .rat-event-row-open .rat-event-row-main
+  position sticky
+  top 0
+  z-index 1
+  background $rat_bg
+
+.rat-timeline-expanded .rat-event-row-open.rat-event-row-user-message .rat-event-row-main
+  background $rat_bg_subtle

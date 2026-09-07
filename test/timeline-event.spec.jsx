@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { act } from 'react'
 import { expect } from 'chai'
 
 import TimelineEvent from '../src/timeline-event/index.js'
@@ -74,7 +74,7 @@ describe('TimelineEvent per-type rendering', () => {
     view.unmount()
   })
 
-  it('renders a tool_call by its tool name', () => {
+  it('renders an unresolved bash call as the shell row', () => {
     const view = render(
       <TimelineEvent
         entry={{
@@ -90,8 +90,74 @@ describe('TimelineEvent per-type rendering', () => {
         }}
       />
     )
-    expect(view.text()).to.contain('Bash')
-    expect(view.text()).to.contain('yarn build')
+    // The label is lowercase `bash` and the prompt heads the command, the way
+    // base frames a genuine shell row.
+    expect(view.text()).to.contain('bash')
+    expect(view.text()).to.contain('$ yarn build')
+    expect(view.text()).to.not.contain('Bash')
+    view.unmount()
+  })
+
+  it('keeps the resolved name the consumer supplies for a bash call', () => {
+    const view = render(
+      <TimelineEvent
+        entry={{
+          id: 'tc2',
+          type: 'tool_call',
+          content: {
+            tool_name: 'Bash',
+            tool_parameters: {
+              command: 'yarn scripts/data-view-search-columns.mjs'
+            },
+            tool_call_id: 'toolu_2',
+            execution_status: 'completed'
+          },
+          ordering: ordering(6)
+        }}
+        resolve_tool_name={() => 'search_columns'}
+      />
+    )
+    expect(view.text()).to.contain('search_columns')
+    expect(view.text()).to.not.contain('bash')
+    expect(view.text()).to.not.contain('Bash')
+    view.unmount()
+  })
+
+  it('opens a completed bash row to reveal its command and result', () => {
+    const entry = {
+      id: 'tc3',
+      type: 'tool_call',
+      content: {
+        tool_name: 'Bash',
+        tool_parameters: { command: 'yarn build' },
+        tool_call_id: 'toolu_3',
+        execution_status: 'completed'
+      },
+      ordering: ordering(7)
+    }
+    const tool_result = {
+      id: 'tr3',
+      type: 'tool_result',
+      content: { tool_call_id: 'toolu_3', result: 'built in 2s' },
+      ordering: ordering(8)
+    }
+
+    const view = render(
+      <TimelineEvent entry={entry} tool_result={tool_result} is_expandable />
+    )
+    expect(view.text()).to.not.contain('built in 2s')
+
+    const toggle = view.container.querySelector('.rat-event-row-toggle')
+    expect(toggle).to.not.equal(null)
+    act(() => {
+      toggle.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(view.text()).to.contain('built in 2s')
+    // The open state also drives the sticky-header class on the row.
+    expect(view.container.querySelector('.rat-event-row-open')).to.not.equal(
+      null
+    )
     view.unmount()
   })
 
@@ -250,6 +316,61 @@ describe('TimelineEvent labels', () => {
     )
     expect(view.text()).to.contain('Generator')
     expect(view.text()).to.not.contain(DEFAULT_LABELS.assistant)
+    view.unmount()
+  })
+})
+
+describe('TimelineEvent long user message', () => {
+  // The tail only ever appears past the collapse threshold, which is what makes
+  // "it is hidden until opened" an assertion rather than a guess: a collapsed
+  // row that kept the whole message would fail it.
+  const long_instruction =
+    'Build the passing touchdown view. ' + 'x'.repeat(300) + ' INSTRUCTION-TAIL'
+
+  it('collapses a long instruction behind the disclosure and reveals it on open', () => {
+    const view = render(
+      <TimelineEvent
+        entry={{
+          id: 'u1',
+          type: 'message',
+          role: 'user',
+          content: long_instruction,
+          ordering: ordering(13)
+        }}
+        is_expandable
+      />
+    )
+
+    const toggle = view.container.querySelector('.rat-event-row-toggle')
+    expect(toggle).to.not.equal(null)
+    expect(toggle.title).to.equal(DEFAULT_LABELS.show_details)
+    expect(view.text()).to.not.contain('INSTRUCTION-TAIL')
+    expect(view.container.querySelector('.rat-event-row-open')).to.equal(null)
+
+    act(() => {
+      toggle.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(view.text()).to.contain('INSTRUCTION-TAIL')
+    expect(toggle.title).to.equal(DEFAULT_LABELS.hide_details)
+    view.unmount()
+  })
+
+  it('leaves a short message fully open with no disclosure', () => {
+    const view = render(
+      <TimelineEvent
+        entry={{
+          id: 'u2',
+          type: 'message',
+          role: 'user',
+          content: 'add passing touchdowns',
+          ordering: ordering(14)
+        }}
+        is_expandable
+      />
+    )
+    expect(view.container.querySelector('.rat-event-row-toggle')).to.equal(null)
+    expect(view.text()).to.contain('add passing touchdowns')
     view.unmount()
   })
 })

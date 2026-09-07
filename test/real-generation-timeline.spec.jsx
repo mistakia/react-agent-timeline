@@ -120,12 +120,18 @@ describe('a real generation timeline', function () {
 
       const name = view.container.querySelector('.rat-tool-name')
       expect(name, entry.id).to.not.equal(null)
-      expect(name.textContent).to.equal(entry.content.tool_name)
+      // Every fixture call is `Bash`, and an unresolved bash call carries the
+      // shell's lowercase label rather than the recorded spelling.
+      const expected =
+        entry.content.tool_name === 'Bash' ? 'bash' : entry.content.tool_name
+      expect(name.textContent).to.equal(expected)
 
       // The name is no longer mashed into the body -- that separation is the
       // point of the chip, so assert the body does NOT carry it back.
       expect(body_text(view.container)).to.not.contain(entry.content.tool_name)
-
+      // And a shell row heads its command with the prompt, the base shape this
+      // presentation copies.
+      expect(body_text(view.container)).to.match(/^\$\s/)
       view.unmount()
     }
   })

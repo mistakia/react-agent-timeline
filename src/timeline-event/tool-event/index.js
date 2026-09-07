@@ -25,6 +25,11 @@ import './tool-event.styl'
 // at the same place rather than at two arbitrary ones.
 const CHIP_MAX_CHARACTERS = 100
 
+// The shell banner underneath a genuinely-shell row. A bash prompt is `$`, and
+// putting it in the text (rather than on a pseudo-element) lets the clamped
+// chip and the full reveal read as one command.
+const BASH_PROMPT = '$ '
+
 /**
  * A tool exchange as one row: what was called, with what, and -- on demand --
  * what came back.
@@ -44,6 +49,11 @@ const CHIP_MAX_CHARACTERS = 100
  * THE ARGUMENT IS IN THE DISCLOSURE TOO, not only the result. The chip is one
  * line and these arguments are routinely a kilobyte of JSON on one line, so a
  * chip alone would truncate the thing the reader opened the row to read.
+ *
+ * A BASH ROW THAT RESOLVES TO NO TOOL IS READ AS A SHELL COMMAND, NOT AS A
+ * NAMED TOOL. Its label is lowercase `bash` and its prompt heads the command.
+ * A bash row the consumer DOES name keeps that name and the same chip, because
+ * naming it is the consumer saying "this command is a real tool".
  */
 export default function ToolEvent({
   entry,
@@ -75,6 +85,8 @@ export default function ToolEvent({
     )
   }
 
+  const recorded_name = tool_name_of(entry)
+
   // The consumer gets first refusal on the name. It is the only side that can
   // improve on it: these agents reach their real tools THROUGH a generic one,
   // so two thirds of a run's rows are called `Bash` and the tool that actually
@@ -84,16 +96,24 @@ export default function ToolEvent({
   const resolved_name =
     typeof resolve_tool_name === 'function' ? resolve_tool_name(entry) : null
   const name =
-    (typeof resolved_name === 'string' && resolved_name) || tool_name_of(entry)
+    (typeof resolved_name === 'string' && resolved_name) ||
+    (recorded_name === 'Bash' ? 'bash' : recorded_name)
   const argument = tool_argument_of(entry) || stringify_content(entry?.content)
   const error = tool_error_of(tool_result)
   const result_text = tool_result ? tool_result_of(tool_result) : ''
+
+  // A bash row the consumer leaves unresolved is a shell command. The label
+  // already says so; the prompt heads the command in the chip and the reveal.
+  const name_was_resolved =
+    typeof resolved_name === 'string' && resolved_name.length > 0
+  const is_shell = recorded_name === 'Bash' && !name_was_resolved
+  const argument_text = is_shell ? `${BASH_PROMPT}${argument}` : argument
 
   // An error is rendered inline instead of folded, so it is deliberately not
   // one of the reasons a row can open.
   const has_hidden_result = Boolean(!error && result_text)
   const is_argument_clipped =
-    argument.length > CHIP_MAX_CHARACTERS || argument.includes('\n')
+    argument_text.length > CHIP_MAX_CHARACTERS || argument_text.includes('\n')
   const can_toggle = is_expandable && (has_hidden_result || is_argument_clipped)
 
   const detail =
@@ -102,7 +122,7 @@ export default function ToolEvent({
         {is_argument_clipped ? (
           <div className="rat-tool-section">
             <span className="rat-tool-caption">{labels.tool_call}</span>
-            <div className="rat-tool-text">{argument}</div>
+            <div className="rat-tool-text">{argument_text}</div>
           </div>
         ) : null}
         {has_hidden_result ? (
@@ -116,7 +136,7 @@ export default function ToolEvent({
 
   return (
     <TimelineEventRow
-      modifier={error ? 'tool-error' : 'tool-call'}
+      modifier={error ? 'tool-error' : is_shell ? 'tool-bash' : 'tool-call'}
       label={<span className="rat-tool-name">{name || labels.tool_call}</span>}
       body={
         <EntryBody
@@ -126,7 +146,7 @@ export default function ToolEvent({
           // would grow to the height of a here-doc while showing one line of
           // it, which is the row-overlap failure the row stylesheet exists to
           // prevent.
-          text={to_single_line(argument)}
+          text={to_single_line(argument_text)}
           labels={labels}
         />
       }

@@ -24,6 +24,11 @@ export const DEFAULT_LABELS = {
   // Titles on the row disclosure, which is a glyph and needs words somewhere.
   show_result: 'Show result',
   hide_result: 'Hide result',
+  // The words behind a collapsed, expandable message body. Kept apart from the
+  // tool result pair above because "result" names the output of a tool, which
+  // a message is not.
+  show_details: 'Show details',
+  hide_details: 'Hide details',
   assistant: 'Assistant',
   user: 'You',
   thinking: 'Thinking',
