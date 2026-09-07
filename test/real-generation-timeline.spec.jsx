@@ -1,11 +1,11 @@
 import fs from 'fs'
 
-import React from 'react'
+import React, { act } from 'react'
 import { expect } from 'chai'
 
 import AgentSessionTimeline from '../src/agent-session-timeline/index.js'
 import TimelineEvent from '../src/timeline-event/index.js'
-import { entry_kind } from '../src/entry-shape.mjs'
+import { entry_kind, is_noise_system_entry } from '../src/entry-shape.mjs'
 import { has_display_content } from '../src/agent-session-timeline/order-entries.mjs'
 import { render } from './helpers/render.jsx'
 
@@ -88,23 +88,71 @@ describe('a real generation timeline', function () {
     view.unmount()
   })
 
-  it('expands to exactly one row per entry, dropping none', function () {
+  // Two entries become one row where a result was folded into its call, and a
+  // noise entry becomes none. Everything else is still one for one, and the
+  // expected count is DERIVED from the fixture rather than written down, so a
+  // change that starts dropping content fails here instead of moving a
+  // hard-coded number to match itself.
+  it('expands to one row per entry, folding results and dropping only noise', function () {
     const view = render(<AgentSessionTimeline is_expanded entries={entries} />)
 
+    const results = entries.filter((entry) => entry.type === 'tool_result')
+    const noise = entries.filter(is_noise_system_entry)
+    const expected = entries.length - results.length - noise.length
+
+    // Both adjustments have to be real, or this assertion is just
+    // `entries.length` wearing a disguise.
+    expect(results.length).to.be.greaterThan(0)
+    expect(noise.length).to.be.greaterThan(0)
+
     expect(view.container.querySelectorAll('.rat-event-row')).to.have.length(
-      entries.length
+      expected
     )
     view.unmount()
   })
 
-  it('renders the tool exchange with its tool names', function () {
+  it('names the tool in its own element, apart from the argument', function () {
     const tool_calls = entries.filter((entry) => entry.type === 'tool_call')
     expect(tool_calls.length).to.be.greaterThan(0)
 
     for (const entry of tool_calls) {
       const view = render(<TimelineEvent entry={entry} />)
-      expect(body_text(view.container)).to.contain(entry.content.tool_name)
+
+      const name = view.container.querySelector('.rat-tool-name')
+      expect(name, entry.id).to.not.equal(null)
+      expect(name.textContent).to.equal(entry.content.tool_name)
+
+      // The name is no longer mashed into the body -- that separation is the
+      // point of the chip, so assert the body does NOT carry it back.
+      expect(body_text(view.container)).to.not.contain(entry.content.tool_name)
+
       view.unmount()
     }
+  })
+
+  it('hides a tool result until its row is opened', function () {
+    const call = entries.find((entry) => entry.type === 'tool_call')
+    const result = entries.find(
+      (entry) =>
+        entry.type === 'tool_result' &&
+        entry.ordering.timeline_index > call.ordering.timeline_index
+    )
+    const result_text = result.content.result
+    expect(result_text).to.be.a('string').and.not.equal('')
+
+    const view = render(
+      <AgentSessionTimeline is_expanded entries={[call, result]} />
+    )
+
+    expect(view.container.textContent).to.not.contain(result_text)
+
+    const toggle = view.container.querySelector('.rat-event-row-toggle')
+    expect(toggle, 'the paired row offers no disclosure').to.not.equal(null)
+    act(() => {
+      toggle.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(view.container.textContent).to.contain(result_text)
+    view.unmount()
   })
 })

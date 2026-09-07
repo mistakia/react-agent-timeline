@@ -28,7 +28,13 @@ const RENDERER_BY_KIND = {
  * renderer: a per-type renderer can forget the check, and the one that forgets
  * is the one that renders a permission failure as content.
  */
-export default function TimelineEvent({ entry, labels }) {
+export default function TimelineEvent({
+  entry,
+  tool_result,
+  is_expandable,
+  resolve_tool_name,
+  labels
+}) {
   const resolved_labels = resolve_labels(labels)
   if (!entry) return null
 
@@ -37,10 +43,24 @@ export default function TimelineEvent({ entry, labels }) {
   }
 
   const Renderer = RENDERER_BY_KIND[entry_kind(entry)] || GenericEvent
-  return <Renderer entry={entry} labels={resolved_labels} />
+  return (
+    <Renderer
+      entry={entry}
+      tool_result={tool_result}
+      is_expandable={is_expandable}
+      resolve_tool_name={resolve_tool_name}
+      labels={resolved_labels}
+    />
+  )
 }
 
 TimelineEvent.propTypes = {
   entry: PropTypes.object,
+  // Passed through to the tool renderer, which is the only one that reads it.
+  // Handing it to every renderer keeps the dispatch table free of per-type
+  // argument lists -- the renderers that do not read it ignore it.
+  tool_result: PropTypes.object,
+  is_expandable: PropTypes.bool,
+  resolve_tool_name: PropTypes.func,
   labels: labels_prop_type
 }

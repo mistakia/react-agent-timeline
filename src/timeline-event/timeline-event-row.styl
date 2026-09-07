@@ -17,14 +17,52 @@
   // squeezes down TO.
   flex none
   display flex
-  align-items baseline
-  gap $rat_space
-  min-height $rat_row_min_height
-  padding $rat_space_xs $rat_space
-  border-radius $rat_radius_sm
+  flex-direction column
   color $rat_text
   font-size $rat_font_size_md
   line-height 1.4
+
+// The horizontal half of the row. Split out from .rat-event-row when tool rows
+// gained a detail block below them: the row became a column so it could stack
+// main-over-detail, and everything that was aligning label against body had to
+// move down one level with it.
+.rat-event-row-main
+  display flex
+  align-items baseline
+  gap $rat_space
+  width 100%
+  min-height $rat_row_min_height
+  padding $rat_space_xs $rat_space
+  text-align left
+
+// The <button> variant, which needs its user-agent styling stripped before it
+// can look like the <div> variant beside it.
+.rat-event-row-toggle
+  border none
+  background transparent
+  color inherit
+  font-family inherit
+  font-size inherit
+  line-height inherit
+  cursor pointer
+
+  &:hover
+    background $rat_bg_hover
+
+  &:focus-visible
+    outline 1px solid $rat_accent
+    outline-offset -1px
+
+.rat-event-marker
+  flex none
+  width 9px
+  color $rat_text_subtle
+  font-family $rat_font_mono
+  font-size $rat_font_size_sm
+  // A `+` and a `−` are different widths in most proportional faces and even in
+  // some monospace ones at small sizes; centring in a fixed slot keeps the
+  // label column from shifting by a pixel every time a row is opened.
+  text-align center
 
 .rat-event-label
   flex none
@@ -44,10 +82,35 @@
   color $rat_text_muted
   font-style italic
 
-.rat-event-row-tool-call .rat-event-body
+.rat-event-row-tool-call .rat-event-body,
 .rat-event-row-tool-result .rat-event-body
   font-family $rat_font_mono
   font-size $rat_font_size_sm
 
 .rat-event-row-tool-error .rat-event-body
+  color $rat_text_error
+
+// A revealed tool result, set behind a rule rather than inside a box.
+//
+// The indent plus the left rule is the whole containment device here: it says
+// "this belongs to the row above" without drawing a card, which is the one
+// thing the consuming design system rules out. The rule is also what keeps a
+// multi-line result from reading as a sibling entry once it wraps.
+.rat-event-detail
+  margin $rat_space_xs 0 $rat_space_sm 0
+  // Indents past the marker slot and the gap, so the rule hangs under the
+  // label rather than under the row's left edge.
+  margin-left $rat_space_lg
+  padding-left $rat_space_lg
+  border-left 1px solid $rat_border
+  max-height $rat_detail_max_height
+  overflow-y auto
+  color $rat_text_muted
+  font-family $rat_font_mono
+  font-size $rat_font_size_sm
+  line-height 1.5
+  white-space pre-wrap
+  overflow-wrap anywhere
+
+.rat-event-detail-error
   color $rat_text_error

@@ -1,7 +1,59 @@
 @import '../../styles/tokens.styl'
 
-.rat-event-row-tool-call .rat-event-label
-  color $rat_text_muted
+// The tool NAME takes the label slot, so it is not uppercased with the rest of
+// them. `search_columns` and `run_sql` are identifiers a reader matches against
+// what they know is installed, and case-folding an identifier makes it a
+// different string on sight.
+.rat-tool-name
+  text-transform none
+  font-family $rat_font_mono
+  font-weight 600
+  color $rat_text
+
+.rat-event-row-tool-error .rat-tool-name
+  color $rat_text_error
 
 .rat-event-row-tool-error .rat-event-label
   color $rat_text_error
+
+// The argument, set as a chip against its own ground.
+//
+// Flat by construction: a hairline rule and a 2px radius, no shadow and no
+// raise. What separates it from the row is the ground shift and the rule, which
+// is the same device the rest of this surface uses.
+//
+// Clamped to one line unconditionally -- not only in the collapsed timeline.
+// These arguments are routinely a kilobyte of single-line JSON, and a chip
+// allowed to wrap would be twenty lines tall in a list whose whole job is to be
+// scannable. The full text is behind the row's disclosure.
+.rat-event-row-tool-call .rat-event-body
+  align-self center
+  padding 1px $rat_space_sm
+  border 1px solid $rat_border
+  border-radius $rat_radius_sm
+  background $rat_field
+  color $rat_text_muted
+  white-space nowrap
+  overflow hidden
+  text-overflow ellipsis
+
+.rat-event-row-tool-call .rat-event-row-toggle:hover .rat-event-body
+  border-color $rat_border_strong
+  color $rat_text
+
+// One captioned block inside a revealed row: the full argument, or the result.
+.rat-tool-section + .rat-tool-section
+  margin-top $rat_space
+
+.rat-tool-caption
+  display block
+  margin-bottom $rat_space_xs
+  color $rat_text_subtle
+  font-size $rat_font_size_xs
+  font-weight 600
+  letter-spacing 0.02em
+  text-transform uppercase
+
+.rat-tool-text
+  white-space pre-wrap
+  overflow-wrap anywhere

@@ -29,12 +29,17 @@
 // `overflow-anchor: none` because the browser's own scroll anchoring fights the
 // pin: appending below the viewport is exactly the case Chrome anchors against,
 // and it holds the previous entry in place a moment after our scroll write.
+//
+// RULED RATHER THAN BOXED: a rule above and below, no side borders and no
+// radius. A bordered rounded rectangle around the list is a card, which is the
+// one construction the consuming design system rules out, and it read as a
+// panel-within-a-panel when it was one.
 .rat-timeline-expanded .rat-timeline-entries
   max-height $rat_expanded_max_height
   overflow-y auto
   overflow-anchor none
-  border 1px solid $rat_border
-  border-radius $rat_radius
+  border-top 1px solid $rat_border_strong
+  border-bottom 1px solid $rat_border
   background $rat_bg
 
 // Where one entry ends and the next begins, which nothing else says once the
@@ -54,24 +59,37 @@
   align-items center
   gap $rat_space
 
-.rat-timeline-toggle
+// Text actions, not filled buttons. The accent is spent on the underline that
+// arrives on hover and on nothing else, which is the whole of this surface's
+// interaction colour.
+.rat-timeline-toggle,
 .rat-timeline-jump
   align-self flex-start
-  padding $rat_space_xs $rat_space_sm
+  padding $rat_space_xs 0
   border none
-  border-radius $rat_radius_sm
   background transparent
   color $rat_accent
   font-size $rat_font_size_sm
   font-weight 600
+  letter-spacing 0.02em
+  text-transform uppercase
+  text-decoration underline
+  text-decoration-color transparent
+  text-underline-offset 2px
   cursor pointer
 
   &:hover
-    background $rat_bg_hover
+    text-decoration-color currentColor
+
+  &:focus-visible
+    outline 1px solid $rat_accent
+    outline-offset 2px
 
 .rat-timeline-jump
-  background $rat_bg_subtle
+  margin-top $rat_space_sm
 
+.rat-timeline-count,
 .rat-timeline-duration
   color $rat_text_subtle
   font-size $rat_font_size_sm
+  font-variant-numeric tabular-nums

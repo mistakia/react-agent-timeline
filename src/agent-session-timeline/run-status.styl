@@ -1,0 +1,49 @@
+@import '../styles/tokens.styl'
+
+.rat-run-status
+  display inline-flex
+  align-items baseline
+  gap $rat_space_sm
+
+// The one animated element on the surface, and it is type rather than a
+// spinner: a highlight travelling along the word itself, which says "still
+// going" without adding a graphic to a page that has none.
+//
+// `background-clip: text` needs a transparent fill to show through. A browser
+// that supports neither renders the label in the gradient's own colour, so the
+// word is still legible and merely still -- the degradation is a static label,
+// never an invisible one.
+.rat-run-status-label
+  color $rat_text_subtle
+  font-size $rat_font_size_sm
+  font-weight 600
+  letter-spacing 0.02em
+  text-transform uppercase
+  background-image linear-gradient(90deg, $rat_text_subtle 35%, $rat_text 50%, $rat_text_subtle 65%)
+  background-size 200% 100%
+  -webkit-background-clip text
+  background-clip text
+  -webkit-text-fill-color transparent
+  animation rat-shimmer 1.4s linear infinite
+
+// Motion is an enhancement here, never the message -- the elapsed counter
+// beside it already says the run is live. Honouring the reader's stated
+// preference costs nothing.
+@media (prefers-reduced-motion: reduce)
+  .rat-run-status-label
+    animation none
+    -webkit-text-fill-color $rat_text_subtle
+
+@keyframes rat-shimmer
+  0%
+    background-position 150%
+  100%
+    background-position -50%
+
+// Tabular figures so the reading changes without the row reflowing. Without
+// them the tenths place shifts every character to its left ten times a second.
+.rat-run-status-elapsed
+  color $rat_text_subtle
+  font-family $rat_font_mono
+  font-size $rat_font_size_sm
+  font-variant-numeric tabular-nums

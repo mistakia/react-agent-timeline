@@ -10,30 +10,55 @@
 // Values indirect through --rat-* CSS custom properties so a consumer can
 // restyle at runtime by redefining them on :root (or any ancestor scope),
 // without rebuilding the package.
+//
+// THE DEFAULTS ARE FLAT AND RULED, AND THAT IS A DECISION RATHER THAN A
+// STARTING POINT. There is no shadow token here and no radius above 3px,
+// because the one consuming application carries a design system whose stated
+// rules are "rules, not boxes" and "no shadows for depth". A package whose
+// defaults were cards and drop shadows would be corrected by an override block
+// in that consumer on the first render, which is two places to change one
+// look. Structure here is carried by rules, alignment and type weight -- the
+// same things the consumer uses -- so the override block does not need to
+// exist. A future consumer that does want depth adds it through --rat-* and
+// nothing in the package resists.
 
 $rat_bg = var(--rat-bg, #ffffff)
-$rat_bg_subtle = var(--rat-bg-subtle, #f7f8f9)
-$rat_bg_hover = var(--rat-bg-hover, rgba(15, 23, 42, 0.04))
-$rat_border = var(--rat-border, #e6e8eb)
-$rat_divider = var(--rat-divider, #eef0f2)
+$rat_bg_subtle = var(--rat-bg-subtle, #fafafa)
+$rat_bg_hover = var(--rat-bg-hover, rgba(23, 24, 26, 0.045))
+// The ground a tool argument sits on. Distinct from --rat-bg-subtle because a
+// chip has to read as a chip against an already-subtle expanded panel; one
+// token doing both jobs makes the chip invisible exactly where it matters.
+$rat_field = var(--rat-field, #f4f4f5)
+$rat_border = var(--rat-border, #d9dadd)
+$rat_border_strong = var(--rat-border-strong, #17181a)
+$rat_divider = var(--rat-divider, #ebecee)
 
-$rat_text = var(--rat-text, #1f2328)
-$rat_text_muted = var(--rat-text-muted, #57606a)
-$rat_text_subtle = var(--rat-text-subtle, #6e7781)
-$rat_text_error = var(--rat-text-error, #b3261e)
-$rat_accent = var(--rat-accent, #0969da)
+$rat_text = var(--rat-text, #17181a)
+$rat_text_muted = var(--rat-text-muted, #55585e)
+$rat_text_subtle = var(--rat-text-subtle, #83878e)
+$rat_text_error = var(--rat-text-error, #9b1c1c)
+// One accent, spent on interaction and error and nothing else. Defaulted to the
+// same deep red as the error ink rather than to a second hue: a timeline has no
+// third state that earns its own colour, and two reds that differ slightly read
+// as a mistake rather than as a distinction.
+$rat_accent = var(--rat-accent, #9b1c1c)
 
 $rat_space_xs = var(--rat-space-xs, 2px)
 $rat_space_sm = var(--rat-space-sm, 4px)
 $rat_space = var(--rat-space, 8px)
 $rat_space_lg = var(--rat-space-lg, 12px)
 
-$rat_radius_sm = var(--rat-radius-sm, 3px)
-$rat_radius = var(--rat-radius, 6px)
+$rat_radius_sm = var(--rat-radius-sm, 2px)
+$rat_radius = var(--rat-radius, 3px)
 
+$rat_font_size_xs = var(--rat-font-size-xs, 10px)
 $rat_font_size_sm = var(--rat-font-size-sm, 11px)
 $rat_font_size_md = var(--rat-font-size-md, 13px)
 $rat_font_mono = var(--rat-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace)
 
 $rat_row_min_height = var(--rat-row-min-height, 24px)
 $rat_expanded_max_height = var(--rat-expanded-max-height, 320px)
+// How far a revealed tool result may run before it scrolls inside its own row.
+// A result is unbounded text and the panel above it already scrolls; without a
+// ceiling here one 4kB result makes the outer scrollbar meaningless.
+$rat_detail_max_height = var(--rat-detail-max-height, 180px)

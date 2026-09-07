@@ -14,6 +14,16 @@ export const DEFAULT_LABELS = {
   jump_to_latest: 'Jump to latest',
   // Reads ahead of a formatted duration, as in `Took 1m 12s`.
   duration: 'Took',
+  // The shimmering label on a run that is still going, beside its elapsed time.
+  running: 'Working',
+  // The footer's tool-call tally, singular and plural. Two entries rather than
+  // one plus an `s`, because the package has no business assuming a consumer's
+  // language pluralizes that way.
+  tool_call_one: 'tool call',
+  tool_call_many: 'tool calls',
+  // Titles on the row disclosure, which is a glyph and needs words somewhere.
+  show_result: 'Show result',
+  hide_result: 'Hide result',
   assistant: 'Assistant',
   user: 'You',
   thinking: 'Thinking',

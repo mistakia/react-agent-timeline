@@ -11,16 +11,22 @@ export {
   order_entries
 } from './src/agent-session-timeline/order-entries.mjs'
 
+export { pair_tool_entries } from './src/agent-session-timeline/pair-tool-entries.mjs'
+
 export {
   ENTRY_KIND,
   entry_kind,
   entry_summary_text,
   is_elided_entry,
+  is_noise_system_entry,
   is_redacted_entry,
   stringify_content,
   to_single_line,
+  tool_argument_of,
+  tool_call_id_of,
   tool_error_of,
-  tool_name_of
+  tool_name_of,
+  tool_result_of
 } from './src/entry-shape.mjs'
 
 export { DEFAULT_LABELS, resolve_labels } from './src/labels.mjs'
