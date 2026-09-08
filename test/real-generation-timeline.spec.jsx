@@ -6,7 +6,10 @@ import { expect } from 'chai'
 import AgentSessionTimeline from '../src/agent-session-timeline/index.js'
 import TimelineEvent from '../src/timeline-event/index.js'
 import { entry_kind, is_noise_system_entry } from '../src/entry-shape.mjs'
-import { has_display_content } from '../src/agent-session-timeline/order-entries.mjs'
+import {
+  has_display_content,
+  latest_entry
+} from '../src/agent-session-timeline/order-entries.mjs'
 import { render } from './helpers/render.jsx'
 
 // The package rendered against the SHAPE of a real run, not against a fixture
@@ -109,6 +112,35 @@ describe('a real generation timeline', function () {
       expected
     )
     view.unmount()
+  })
+
+  // Walked over every PREFIX rather than the finished run, because the
+  // collapsed line is watched while the run is in flight and the defect only
+  // exists at the instants when a result is the newest thing recorded.
+  //
+  // The control is the second assertion, not decoration: it shows the old
+  // entry-level selector DOES land on a bare result somewhere in this walk, so
+  // a passing first assertion means the rule changed rather than that the
+  // fixture never reaches the case.
+  it('never collapses to a bare tool result at any point in the run', function () {
+    const live = entries.filter((entry) => !is_noise_system_entry(entry))
+    const bare_result_prefixes = []
+
+    for (let count = 1; count <= live.length; count += 1) {
+      const prefix = live.slice(0, count)
+      const view = render(<AgentSessionTimeline entries={prefix} />)
+
+      expect(
+        view.container.querySelector('.rat-event-row-tool-result'),
+        `prefix of ${count} entries`
+      ).to.equal(null)
+      view.unmount()
+
+      if (entry_kind(latest_entry(prefix)) === 'tool_result')
+        bare_result_prefixes.push(count)
+    }
+
+    expect(bare_result_prefixes.length).to.be.greaterThan(0)
   })
 
   it('names the tool in its own element, apart from the argument', function () {

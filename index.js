@@ -11,7 +11,10 @@ export {
   order_entries
 } from './src/agent-session-timeline/order-entries.mjs'
 
-export { pair_tool_entries } from './src/agent-session-timeline/pair-tool-entries.mjs'
+export {
+  latest_row,
+  pair_tool_entries
+} from './src/agent-session-timeline/pair-tool-entries.mjs'
 
 export {
   ENTRY_KIND,

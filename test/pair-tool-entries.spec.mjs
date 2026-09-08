@@ -1,6 +1,9 @@
 import { expect } from 'chai'
 
-import { pair_tool_entries } from '../src/agent-session-timeline/pair-tool-entries.mjs'
+import {
+  latest_row,
+  pair_tool_entries
+} from '../src/agent-session-timeline/pair-tool-entries.mjs'
 
 const call = (id, tool_call_id) => ({
   id,
@@ -96,5 +99,67 @@ describe('pairing a tool call to its result', () => {
     expect(rows).to.have.length(2)
     expect(rows[0].tool_result.id).to.equal('result-a')
     expect(rows[1].tool_result).to.equal(null)
+  })
+})
+
+describe('the row the collapsed line shows', () => {
+  const spine = (entries) =>
+    entries.map((entry, index) => ({
+      ...entry,
+      ordering: { timeline_index: index, timeline_epoch: 0 }
+    }))
+
+  const rows_of = (entries) => pair_tool_entries(spine(entries))
+
+  it('shows the CALL when the newest entry is its result', () => {
+    const row = latest_row(
+      rows_of([
+        message('m1'),
+        call('call-a', 'toolu_a'),
+        result('result-a', 'toolu_a', 'output')
+      ])
+    )
+
+    expect(row.entry.id).to.equal('call-a')
+    // Carried, not dropped: the row still knows its output, it just does not
+    // render it while the line is collapsed.
+    expect(row.tool_result.id).to.equal('result-a')
+  })
+
+  it('advances to a pair whose result landed after an older message', () => {
+    const row = latest_row(
+      rows_of([
+        call('call-a', 'toolu_a'),
+        message('m1'),
+        result('result-a', 'toolu_a', 'output')
+      ])
+    )
+
+    // The call precedes the message, so ordering by the CALL alone would leave
+    // the collapsed line on `m1` after the tool returned.
+    expect(row.entry.id).to.equal('call-a')
+  })
+
+  it('shows a no-argument call rather than skipping to something older', () => {
+    const bare_call = {
+      id: 'call-bare',
+      type: 'tool_call',
+      content: { tool_name: 'Bash' }
+    }
+
+    const row = latest_row(rows_of([message('m1'), bare_call]))
+
+    expect(row.entry.id).to.equal('call-bare')
+  })
+
+  it('still shows an orphan result, which is the only row there is', () => {
+    const row = latest_row(rows_of([result('orphan', 'toolu_x', 'output')]))
+
+    expect(row.entry.id).to.equal('orphan')
+  })
+
+  it('returns null for an empty timeline', () => {
+    expect(latest_row([])).to.equal(null)
+    expect(latest_row(null)).to.equal(null)
   })
 })

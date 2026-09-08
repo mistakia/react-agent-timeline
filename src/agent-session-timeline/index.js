@@ -3,8 +3,8 @@ import PropTypes from 'prop-types'
 
 import TimelineEvent from '../timeline-event/index.js'
 import RunStatus from './run-status.js'
-import { latest_entry, order_entries } from './order-entries.mjs'
-import { pair_tool_entries } from './pair-tool-entries.mjs'
+import { order_entries } from './order-entries.mjs'
+import { latest_row, pair_tool_entries } from './pair-tool-entries.mjs'
 import { format_duration } from './format-duration.mjs'
 import { use_stick_to_bottom } from './use-stick-to-bottom.js'
 import {
@@ -55,7 +55,10 @@ export default function AgentSessionTimeline({
   // an orphan row.
   const rows = React.useMemo(() => pair_tool_entries(ordered), [ordered])
 
-  const latest = React.useMemo(() => latest_entry(ordered), [ordered])
+  // Selected over ROWS, not entries, so the collapsed line can never be a bare
+  // tool result -- a result is part of the call's row, never an event of its
+  // own on either surface.
+  const latest = React.useMemo(() => latest_row(rows), [rows])
 
   const tool_call_count = React.useMemo(
     () =>
@@ -78,14 +81,10 @@ export default function AgentSessionTimeline({
   if (is_expanded) class_names.push('rat-timeline-expanded')
   if (className) class_names.push(className)
 
-  // Collapsed shows the newest entry as an unpaired row: it is a status line,
-  // and a disclosure on a one-line status is a control the reader cannot use
-  // without the panel growing.
-  const visible = is_expanded
-    ? rows
-    : latest
-      ? [{ entry: latest, tool_result: null }]
-      : []
+  // Collapsed carries the row whole -- its result included, so an errored call
+  // still colours the line -- but not expandable: a disclosure on a one-line
+  // status is a control the reader cannot use without the panel growing.
+  const visible = is_expanded ? rows : latest ? [latest] : []
 
   const can_toggle = Boolean(on_toggle_expanded) && ordered.length > 1
   const has_footer =
