@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 
-import { format_duration } from '../src/agent-session-timeline/format-duration.mjs'
+import { format_duration } from '../src/format-duration.mjs'
 
 describe('format_duration', () => {
   it('keeps one decimal under ten seconds', () => {

@@ -100,6 +100,22 @@
   color $rat_text_muted
   font-style italic
 
+// A reading about the row, at its right edge: how long a call took, when that
+// was long enough to be worth saying.
+//
+// `flex none` so it is never the thing that truncates — the body clamps, the
+// number does not, because a number cut in half is a wrong number rather than a
+// shortened one. Tabular figures so a column of them lines up on the decimal
+// and a reader can compare two rows without reading either.
+.rat-event-meta
+  flex none
+  align-self baseline
+  color $rat_text_subtle
+  font-family $rat_font_mono
+  font-size $rat_font_size_xs
+  font-variant-numeric tabular-nums
+  white-space nowrap
+
 // THE TOOL'S OWN FACE, worn by every row whose body is a tool's payload — the
 // recorded call, a shell invocation the consumer left unresolved, an errored
 // call and an orphan result. The face is what identifies a tool line at a

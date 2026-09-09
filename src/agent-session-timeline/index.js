@@ -9,7 +9,7 @@ import {
   pair_tool_entries,
   row_has_content
 } from './pair-tool-entries.mjs'
-import { format_duration } from './format-duration.mjs'
+import { format_duration } from '../format-duration.mjs'
 import { use_stick_to_bottom } from './use-stick-to-bottom.js'
 import {
   ENTRY_KIND,

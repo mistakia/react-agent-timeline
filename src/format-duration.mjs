@@ -1,10 +1,13 @@
-// How long a run took, rendered the way a person would say it.
+// How long something took, rendered the way a person would say it. Shared by
+// the footer's run duration and a tool row's own elapsed time.
 //
-// The package formats a duration it is HANDED and never computes one: deriving
+// THE RUN'S duration is HANDED to the package and never computed here: deriving
 // it would mean knowing what a run is, when it started and what finished it,
-// which is the consumer's job. Passing the number in is also what keeps the
-// component honest about a resumed run, where wall-clock arithmetic in the
-// browser would count the time the tab was closed.
+// which is the consumer's job, and wall-clock arithmetic in the browser would
+// count the time a resumed run spent with the tab closed. A TOOL CALL's elapsed
+// time is different in kind and is computed — both of its instants are recorded
+// on the entries themselves, by the server, so the subtraction asks the browser
+// for nothing and cannot drift.
 
 const SECOND_MS = 1000
 const MINUTE_MS = 60 * SECOND_MS

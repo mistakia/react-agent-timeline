@@ -7,13 +7,17 @@ import {
   ENTRY_KIND,
   entry_kind,
   normalize_tool_fields,
+  split_path_tail,
   stringify_content,
   to_single_line,
   tool_argument_of,
   tool_error_of,
+  tool_elapsed_ms,
   tool_name_of,
+  tool_path_of,
   tool_result_of
 } from '../../entry-shape.mjs'
+import { format_duration } from '../../format-duration.mjs'
 import { labels_prop_type } from '../../labels.mjs'
 
 import './tool-event.styl'
@@ -55,6 +59,17 @@ const BASH_PROMPT = '$ '
  * fields, the chip shows those instead of the parameter guess -- a catalog
  * search reads as its query and its grain rather than as the shell line it was
  * invoked through -- and the raw invocation moves into the disclosure.
+ *
+ * A SLOW CALL SAYS SO ON ITS OWN ROW. The footer's duration is the whole run,
+ * so until this the surface could say a run took four minutes and not which of
+ * its forty rows was three of them. Only calls past a threshold carry the
+ * number, because a duration on every row is a column nobody reads.
+ *
+ * A PATH ARGUMENT IS READ AS A FILE, NOT AS A LOCATION. An agent's paths are
+ * absolute, so a run of file reads renders as the same eighty characters of home
+ * directory and repository root on every row with the one byte that differs
+ * clamped off the right-hand end. The tail carries the ink, the directories
+ * ahead of it are set back, and the whole path is on the row's title.
  *
  * A BASH ROW THAT RESOLVES TO NO TOOL IS READ AS A SHELL COMMAND, NOT AS A
  * NAMED TOOL. Its label is lowercase `bash` and its prompt heads the command.
@@ -115,6 +130,19 @@ export default function ToolEvent({
     typeof resolved_name === 'string' && resolved_name.length > 0
   const is_shell = recorded_name === 'Bash' && !name_was_resolved
   const argument_text = is_shell ? `${BASH_PROMPT}${argument}` : argument
+
+  // A path argument reads as the FILE, with the directories that locate it set
+  // back. Only when the package's own guess is what is being rendered: a
+  // consumer that answered with fields has already said what identifies this
+  // call, and a path it did not choose is not it.
+  const path = is_shell ? null : tool_path_of(entry)
+  const path_parts = path ? split_path_tail(path) : null
+
+  // How long this call took, when that was long enough to be worth saying.
+  // Nothing else on the surface answers "where did the run's time go" — the
+  // footer's duration is the whole run, and every row before this looked the
+  // same whether it returned instantly or after a minute.
+  const elapsed_text = format_duration(tool_elapsed_ms(entry, tool_result))
 
   // What the consumer says identifies this call, when it recognizes it. Null
   // for a tool it does not know, and the package's own guess stands.
@@ -197,6 +225,16 @@ export default function ToolEvent({
               </span>
             ))}
           </span>
+        ) : path_parts ? (
+          // The full path stays on the element's title, so shortening the line
+          // hides nothing -- it only stops the machine's directory layout from
+          // being the first eighty characters of every file row.
+          <span className="rat-tool-path" title={path}>
+            {path_parts.prefix ? (
+              <span className="rat-tool-path-prefix">{path_parts.prefix}</span>
+            ) : null}
+            <span className="rat-tool-path-name">{path_parts.name}</span>
+          </span>
         ) : (
           <EntryBody
             entry={entry}
@@ -210,6 +248,7 @@ export default function ToolEvent({
           />
         )
       }
+      meta={elapsed_text}
       is_expanded={is_open}
       on_toggle={can_toggle ? () => set_is_open((open) => !open) : undefined}
       toggle_title={is_open ? labels.hide_result : labels.show_result}

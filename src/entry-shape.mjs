@@ -85,6 +85,34 @@ export function tool_result_of(entry) {
   return stringify_content(entry?.content?.result)
 }
 
+// Below this, a call's elapsed time is not worth a reader's attention and is
+// not rendered.
+//
+// THE READING EXISTS TO FIND THE OUTLIER, which is why it is thresholded rather
+// than always on. Nearly every call on a run returns in about a second, so a
+// duration on every row is a column of near-identical numbers that a reader
+// learns to stop seeing — and the one call that took forty seconds, which is
+// the entire question "where did this run go", is then just another number in
+// it. Shown only where it is unusual, the number IS the answer.
+const MIN_REPORTED_ELAPSED_MS = 2000
+
+/**
+ * How long a tool call took, from its own timestamp to its result's, or null
+ * when that is unknown or unremarkable.
+ *
+ * Null rather than zero for a call still in flight: a call that has not come
+ * back did not take no time, and a live row must not report a duration it will
+ * contradict a moment later.
+ */
+export function tool_elapsed_ms(entry, tool_result) {
+  const started = Date.parse(entry?.timestamp)
+  const finished = Date.parse(tool_result?.timestamp)
+  if (!Number.isFinite(started) || !Number.isFinite(finished)) return null
+
+  const elapsed = finished - started
+  return elapsed >= MIN_REPORTED_ELAPSED_MS ? elapsed : null
+}
+
 /** The id joining a `tool_call` to its `tool_result`, or null when absent. */
 export function tool_call_id_of(entry) {
   const id = entry?.content?.tool_call_id
@@ -122,6 +150,71 @@ export function tool_argument_of(entry) {
   }
 
   return stringify_content(parameters)
+}
+
+// The parameters whose value is a filesystem path rather than prose. Both are
+// already in the preference list above; this set is what says a chosen argument
+// is a PATH, so the row can render it as one.
+const PATH_PARAMETERS = ['file_path', 'path']
+
+/**
+ * The identifying argument as a filesystem path, when that is what it is.
+ *
+ * Null when the call's identifying argument came from somewhere else, INCLUDING
+ * when the parameters also carry a path -- a search call is its pattern, not the
+ * directory it happened to run in, and rendering the directory as the row's
+ * subject would name the wrong thing.
+ */
+export function tool_path_of(entry) {
+  const parameters = entry?.content?.tool_parameters
+  if (!parameters || typeof parameters !== 'object') return null
+
+  const argument = tool_argument_of(entry)
+  if (!argument) return null
+
+  return PATH_PARAMETERS.some((key) => parameters[key] === argument)
+    ? argument
+    : null
+}
+
+// How many trailing segments of a path identify a file.
+//
+// ONE IS NOT ENOUGH and three is the whole path again. A tree of `index.js`,
+// `README.md` and `reducer.js` files gives a basename-only row nothing to
+// distinguish it from four other rows, and the parent directory is what a
+// reader actually says out loud to name the file -- `tool-event/index.js`.
+const PATH_TAIL_SEGMENTS = 2
+
+/**
+ * A path split into the part that identifies it and the part that only locates
+ * it: `{prefix, name}`, where `name` is the basename and `prefix` is the last
+ * few directories ahead of it, elided at the front when anything was dropped.
+ *
+ * THE ROW'S SUBJECT IS THE FILE, NOT THE MACHINE IT IS ON. An agent's paths are
+ * absolute and routinely 80 characters of home directory and repository root
+ * before the first byte that differs between two rows, so a list of file reads
+ * clamps to an identical left-hand prefix and the reader learns nothing from any
+ * of them. The full path is still carried -- on the row's title, and in the
+ * disclosure when it is long enough to earn one -- so nothing is lost, it is
+ * just no longer the thing occupying the line.
+ */
+export function split_path_tail(path, segment_count = PATH_TAIL_SEGMENTS) {
+  const text = String(path ?? '').trim()
+  if (!text) return null
+
+  const is_absolute = text.startsWith('/')
+  const segments = text.split('/').filter(Boolean)
+  if (!segments.length) return { prefix: '', name: text }
+
+  const name = segments[segments.length - 1]
+  const directories = segments.slice(0, -1)
+  const kept = segment_count > 1 ? directories.slice(1 - segment_count) : []
+  const dropped = kept.length < directories.length
+
+  const lead = dropped ? '…/' : is_absolute ? '/' : ''
+  const prefix = kept.length ? `${lead}${kept.join('/')}/` : lead
+
+  return { prefix, name }
 }
 
 /**

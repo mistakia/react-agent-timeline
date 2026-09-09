@@ -20,6 +20,7 @@ import './timeline-event-row.styl'
 export default function TimelineEventRow({
   label,
   body,
+  meta,
   detail,
   modifier,
   is_muted,
@@ -49,6 +50,10 @@ export default function TimelineEventRow({
           wants the full width. */}
       {label ? <span className="rat-event-label">{label}</span> : null}
       <span className="rat-event-body">{body}</span>
+      {/* A reading ABOUT the row, parked at its right edge. Rendered after the
+          body so the body keeps every pixel the meta does not need — the meta
+          is a handful of characters and the body is the thing being read. */}
+      {meta ? <span className="rat-event-meta">{meta}</span> : null}
     </>
   )
 
@@ -78,6 +83,10 @@ export default function TimelineEventRow({
 TimelineEventRow.propTypes = {
   label: PropTypes.node,
   body: PropTypes.node,
+  // A short reading about the row rather than part of it — a tool call's
+  // elapsed time. Kept out of the body so it cannot be truncated away by the
+  // one-line clamp, which is what would happen to anything appended there.
+  meta: PropTypes.node,
   detail: PropTypes.node,
   modifier: PropTypes.string,
   is_muted: PropTypes.bool,

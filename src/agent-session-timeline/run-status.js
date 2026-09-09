@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import { format_duration } from './format-duration.mjs'
+import { format_duration } from '../format-duration.mjs'
 import { labels_prop_type } from '../labels.mjs'
 
 import './run-status.styl'

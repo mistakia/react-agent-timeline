@@ -77,6 +77,42 @@
 .rat-tool-field-value--error
   color $rat_text_error
 
+// A path argument: the file in full ink, the directories ahead of it set back.
+//
+// TWO WEIGHTS OF ONE STRING, not two elements a reader has to join. The prefix
+// and the name sit flush against each other with no separator, so the line still
+// reads as one path — what the contrast does is tell a reader scanning a column
+// of file rows where to put their eye, which is the last segment every time.
+//
+// The name is allowed to shrink but never before the prefix does: on a narrow
+// panel the directories give way and the filename survives, which is the whole
+// reason the two are separate elements.
+.rat-tool-path
+  display inline-flex
+  align-items baseline
+  min-width 0
+
+.rat-tool-path-prefix
+  flex 0 1 auto
+  min-width 0
+  color $rat_text_subtle
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
+
+.rat-tool-path-name
+  flex 0 0 auto
+  color $rat_text
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
+
+// A failed read still reads as failed. The row rule colours `.rat-event-body`,
+// which these two spans sit inside and override, so the error ink has to be
+// restated here or a path row is the one kind of row whose failure is invisible.
+.rat-event-row-tool-error .rat-tool-path-name
+  color $rat_text_error
+
 // One captioned block inside a revealed row: the full argument, or the result.
 .rat-tool-section + .rat-tool-section
   margin-top $rat_space
