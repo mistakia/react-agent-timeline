@@ -1,0 +1,21 @@
+@import '../styles/tokens.styl'
+
+// A revealed message is prose — the instruction, the agent's reasoning, a
+// system record — rather than a tool's terminal output, so it sheds the detail
+// block's mono face. Everything else about the detail (the indent, the seam,
+// the bounded height) stays, because the disclosure is the same object here it
+// is on a tool row.
+.rat-event-row-user-message .rat-event-detail,
+.rat-event-row-thinking-message .rat-event-detail,
+.rat-event-row-system-message .rat-event-detail,
+.rat-event-row-generic .rat-event-detail
+  color $rat_text
+  font-family inherit
+  font-size $rat_font_size_md
+
+// A muted row stays muted when it opens. Without this a reasoning entry reads
+// as the agent's own voice the moment it is revealed, which is the one thing
+// the mute exists to say it is not.
+.rat-event-row-muted .rat-event-detail
+  color $rat_text_muted
+  font-style italic
