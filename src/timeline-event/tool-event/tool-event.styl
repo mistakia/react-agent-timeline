@@ -47,6 +47,47 @@
   border-color $rat_border_strong
   color $rat_text
 
+// The identifying fields inside the chip, when the consumer supplied them.
+//
+// ONE CHIP HOLDING SEVERAL FIELDS, not one chip each. The fields are a single
+// answer to "what was this call about" — a query AND the grain it ran at — and
+// splitting them into separate grounds would read as separate arguments to
+// separate things. What separates them inside the chip is the caption face and
+// a gap, which is the same device the row's own label column uses.
+.rat-tool-fields
+  display inline-flex
+  align-items baseline
+  gap $rat_space
+  min-width 0
+
+.rat-tool-field
+  display inline-flex
+  align-items baseline
+  gap $rat_space_sm
+  min-width 0
+
+// Which field this is, in the same small uppercase the row labels and the
+// detail captions use, so a reader learns one caption face on this surface
+// rather than three.
+.rat-tool-field-label
+  flex none
+  color $rat_text_subtle
+  font-family $rat_font_mono
+  font-size $rat_font_size_xs
+  font-weight 600
+  letter-spacing 0.02em
+  text-transform uppercase
+
+// The value carries the ink, because the value is the answer. Clamped like
+// everything else on a row: the chip is one line and a long query truncates
+// rather than wrapping the list open.
+.rat-tool-field-value
+  min-width 0
+  color $rat_text
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
+
 // One captioned block inside a revealed row: the full argument, or the result.
 .rat-tool-section + .rat-tool-section
   margin-top $rat_space

@@ -8,7 +8,7 @@ import { render } from './helpers/render.jsx'
 const ordering = (index) => ({ timeline_index: index, timeline_epoch: 0 })
 
 describe('TimelineEvent per-type rendering', () => {
-  it('renders an assistant message content', () => {
+  it('renders an assistant message content, with no label beside it', () => {
     const view = render(
       <TimelineEvent
         entry={{
@@ -21,7 +21,36 @@ describe('TimelineEvent per-type rendering', () => {
       />
     )
     expect(view.text()).to.contain('checked how that stat is measured')
-    expect(view.text()).to.contain(DEFAULT_LABELS.assistant)
+    // Asserted on the ELEMENT rather than on the absence of a word: the label
+    // column is a fixed-width box, so a label rendered empty still indents the
+    // message by its width while every text assertion passes.
+    expect(
+      view.container.querySelector(
+        '.rat-event-row-assistant-message .rat-event-label'
+      )
+    ).to.equal(null)
+    view.unmount()
+  })
+
+  // The control for the check above. It reads a class name that exists, and it
+  // can see a label column on a row that has one.
+  it('does render a label column on a row that has a label', () => {
+    const view = render(
+      <TimelineEvent
+        entry={{
+          id: 'a-control',
+          type: 'message',
+          role: 'user',
+          content: 'add passing touchdowns',
+          ordering: ordering(1)
+        }}
+      />
+    )
+    expect(
+      view.container.querySelector(
+        '.rat-event-row-user-message .rat-event-label'
+      )?.textContent
+    ).to.equal(DEFAULT_LABELS.user)
     view.unmount()
   })
 
@@ -306,17 +335,23 @@ describe('TimelineEvent labels', () => {
       <TimelineEvent
         entry={{
           id: 'l',
-          type: 'message',
-          role: 'assistant',
+          type: 'thinking',
           content: 'body',
           ordering: ordering(12)
         }}
-        labels={{ assistant: 'Generator' }}
+        labels={{ thinking: 'Reasoning' }}
       />
     )
-    expect(view.text()).to.contain('Generator')
-    expect(view.text()).to.not.contain(DEFAULT_LABELS.assistant)
+    expect(view.text()).to.contain('Reasoning')
+    expect(view.text()).to.not.contain(DEFAULT_LABELS.thinking)
     view.unmount()
+  })
+
+  // The assistant row is the one place a consumer has no word to override,
+  // because it renders none. A stale `assistant` entry left in the defaults
+  // would be a word nothing can reach.
+  it('carries no assistant label to override', () => {
+    expect(DEFAULT_LABELS).to.not.have.property('assistant')
   })
 })
 

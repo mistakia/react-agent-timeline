@@ -6,6 +6,7 @@ import EntryBody from '../entry-body.js'
 import {
   ENTRY_KIND,
   entry_kind,
+  normalize_tool_fields,
   stringify_content,
   to_single_line,
   tool_argument_of,
@@ -50,6 +51,11 @@ const BASH_PROMPT = '$ '
  * line and these arguments are routinely a kilobyte of JSON on one line, so a
  * chip alone would truncate the thing the reader opened the row to read.
  *
+ * THE CONSUMER GETS FIRST REFUSAL ON THE ARGUMENT AS WELL AS THE NAME. Given
+ * fields, the chip shows those instead of the parameter guess -- a catalog
+ * search reads as its query and its grain rather than as the shell line it was
+ * invoked through -- and the raw invocation moves into the disclosure.
+ *
  * A BASH ROW THAT RESOLVES TO NO TOOL IS READ AS A SHELL COMMAND, NOT AS A
  * NAMED TOOL. Its label is lowercase `bash` and its prompt heads the command.
  * A bash row the consumer DOES name keeps that name and the same chip, because
@@ -60,7 +66,8 @@ export default function ToolEvent({
   tool_result,
   labels,
   is_expandable,
-  resolve_tool_name
+  resolve_tool_name,
+  resolve_tool_argument
 }) {
   const [is_open, set_is_open] = React.useState(false)
 
@@ -109,17 +116,31 @@ export default function ToolEvent({
   const is_shell = recorded_name === 'Bash' && !name_was_resolved
   const argument_text = is_shell ? `${BASH_PROMPT}${argument}` : argument
 
+  // What the consumer says identifies this call, when it recognizes it. Null
+  // for a tool it does not know, and the package's own guess stands.
+  const fields = normalize_tool_fields(
+    typeof resolve_tool_argument === 'function'
+      ? resolve_tool_argument(entry)
+      : null
+  )
+
   // An error is rendered inline instead of folded, so it is deliberately not
   // one of the reasons a row can open.
   const has_hidden_result = Boolean(!error && result_text)
+  // WITH FIELDS THE CHIP IS A SUMMARY, so the raw argument goes in the
+  // disclosure unconditionally rather than only when it is too long for a line.
+  // The fields are a reading OF the invocation, and a reader who wants to check
+  // that reading against what actually ran must be able to reach it.
   const is_argument_clipped =
     argument_text.length > CHIP_MAX_CHARACTERS || argument_text.includes('\n')
-  const can_toggle = is_expandable && (has_hidden_result || is_argument_clipped)
+  const show_argument_detail = Boolean(fields) || is_argument_clipped
+  const can_toggle =
+    is_expandable && (has_hidden_result || show_argument_detail)
 
   const detail =
-    has_hidden_result || is_argument_clipped ? (
+    has_hidden_result || show_argument_detail ? (
       <>
-        {is_argument_clipped ? (
+        {show_argument_detail ? (
           <div className="rat-tool-section">
             <span className="rat-tool-caption">{labels.tool_call}</span>
             <div className="rat-tool-text">{argument_text}</div>
@@ -139,16 +160,31 @@ export default function ToolEvent({
       modifier={error ? 'tool-error' : is_shell ? 'tool-bash' : 'tool-call'}
       label={<span className="rat-tool-name">{name || labels.tool_call}</span>}
       body={
-        <EntryBody
-          entry={entry}
-          // Collapsed to one line HERE rather than by CSS alone, because the
-          // chip's own ellipsis cannot help with an embedded newline: the row
-          // would grow to the height of a here-doc while showing one line of
-          // it, which is the row-overlap failure the row stylesheet exists to
-          // prevent.
-          text={to_single_line(argument_text)}
-          labels={labels}
-        />
+        fields ? (
+          <span className="rat-tool-fields">
+            {fields.map((field, index) => (
+              <span className="rat-tool-field" key={field.label ?? index}>
+                {field.label ? (
+                  <span className="rat-tool-field-label">{field.label}</span>
+                ) : null}
+                <span className="rat-tool-field-value">
+                  {to_single_line(field.value)}
+                </span>
+              </span>
+            ))}
+          </span>
+        ) : (
+          <EntryBody
+            entry={entry}
+            // Collapsed to one line HERE rather than by CSS alone, because the
+            // chip's own ellipsis cannot help with an embedded newline: the row
+            // would grow to the height of a here-doc while showing one line of
+            // it, which is the row-overlap failure the row stylesheet exists to
+            // prevent.
+            text={to_single_line(argument_text)}
+            labels={labels}
+          />
+        )
       }
       is_expanded={is_open}
       on_toggle={can_toggle ? () => set_is_open((open) => !open) : undefined}
@@ -171,5 +207,9 @@ ToolEvent.propTypes = {
   // `(entry) => string | null`. Returning null or a non-string defers to the
   // entry's own `tool_name`, so a consumer only has to recognize the calls it
   // knows about.
-  resolve_tool_name: PropTypes.func
+  resolve_tool_name: PropTypes.func,
+  // `(entry) => [{ label, value }] | null`. The same contract for the ARGUMENT:
+  // the fields that identify this call, in the order a reader should read them.
+  // Anything else defers to the package's own guess.
+  resolve_tool_argument: PropTypes.func
 }

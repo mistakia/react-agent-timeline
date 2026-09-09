@@ -33,7 +33,9 @@ export const DEFAULT_LABELS = {
   // a message is not.
   show_details: 'Show details',
   hide_details: 'Hide details',
-  assistant: 'Assistant',
+  // No `assistant` entry, and its absence is deliberate rather than an
+  // oversight: the assistant message is the one row that carries no label at
+  // all. See AssistantMessage for why the shape says it better than a word did.
   user: 'You',
   thinking: 'Thinking',
   system: 'System',

@@ -7,6 +7,16 @@
   color $rat_text
   font-size $rat_font_size_md
 
+// The list's box, and nothing else. It exists to be the positioning context for
+// the jump control: the control has to float over the entries without scrolling
+// with them, so it cannot hang off the scroll container, and it must not reach
+// down over the footer, so it cannot hang off `.rat-timeline` either.
+.rat-timeline-body
+  position relative
+  display flex
+  flex-direction column
+  min-width 0
+
 .rat-timeline-entries
   display flex
   flex-direction column
@@ -101,7 +111,6 @@
 // a panel it sits at the bottom of.
 .rat-timeline-toggle,
 .rat-timeline-jump
-  align-self flex-start
   display inline-flex
   align-items center
   gap $rat_space_sm
@@ -128,6 +137,9 @@
 // reveal things on this surface say so the same way. Drawn by the stylesheet
 // rather than placed in the markup, which keeps the button's text exactly the
 // word the consumer supplied and nothing else.
+.rat-timeline-toggle
+  align-self flex-start
+
 .rat-timeline-toggle::before
   content '+'
   font-family $rat_font_mono
@@ -136,8 +148,34 @@
 .rat-timeline-toggle[aria-expanded='true']::before
   content '\2212'
 
+// FLOATED OVER THE LIST, TAKING NO HEIGHT, and that is the point of it rather
+// than a placement preference. In normal flow the control appeared the moment
+// the reader scrolled up and vanished the moment they returned, and the panel
+// grew and shrank by its height each time — the thing whose job is to steady
+// the view was the only thing moving it. Absolute against `.rat-timeline-body`,
+// showing and hiding it moves nothing.
+//
+// Centred over the list and off its bottom edge, so it sits directly above the
+// expand control in the footer: the two things a reader reaches for when the
+// list is longer than the panel, on one axis.
+//
+// The subtle ground rather than $rat_bg, because a consumer may set $rat_bg
+// transparent to sit the timeline on its own page — and a transparent button
+// floating over text is unreadable exactly where it is offered.
 .rat-timeline-jump
-  margin-top $rat_space_sm
+  position absolute
+  left 50%
+  bottom $rat_space
+  transform translateX(-50%)
+  z-index 2
+  background $rat_bg_subtle
+
+  // Hover is the border alone, as it is on the expand control. The shared rule
+  // shifts the ground, and a translucent hover ground over a floating button
+  // would print the list's own text through the one control meant to be read
+  // against it.
+  &:hover
+    background $rat_bg_subtle
 
 .rat-timeline-count,
 .rat-timeline-duration

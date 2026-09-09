@@ -33,6 +33,7 @@ export default function TimelineEvent({
   tool_result,
   is_expandable,
   resolve_tool_name,
+  resolve_tool_argument,
   labels
 }) {
   const resolved_labels = resolve_labels(labels)
@@ -49,6 +50,7 @@ export default function TimelineEvent({
       tool_result={tool_result}
       is_expandable={is_expandable}
       resolve_tool_name={resolve_tool_name}
+      resolve_tool_argument={resolve_tool_argument}
       labels={resolved_labels}
     />
   )
@@ -62,5 +64,6 @@ TimelineEvent.propTypes = {
   tool_result: PropTypes.object,
   is_expandable: PropTypes.bool,
   resolve_tool_name: PropTypes.func,
+  resolve_tool_argument: PropTypes.func,
   labels: labels_prop_type
 }

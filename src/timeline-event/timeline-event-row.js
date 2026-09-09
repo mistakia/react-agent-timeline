@@ -43,7 +43,11 @@ export default function TimelineEventRow({
           {is_expanded ? '−' : '+'}
         </span>
       ) : null}
-      <span className="rat-event-label">{label}</span>
+      {/* Omitted rather than rendered empty when a row has no label. The label
+          is a fixed-width COLUMN, so an empty one indents the body of a row
+          that has nothing to line up with — which is exactly the row that most
+          wants the full width. */}
+      {label ? <span className="rat-event-label">{label}</span> : null}
       <span className="rat-event-body">{body}</span>
     </>
   )

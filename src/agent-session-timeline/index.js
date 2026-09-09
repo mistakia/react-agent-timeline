@@ -42,6 +42,7 @@ export default function AgentSessionTimeline({
   is_running = false,
   hide_noise = true,
   resolve_tool_name,
+  resolve_tool_argument,
   labels,
   className
 }) {
@@ -121,39 +122,55 @@ export default function AgentSessionTimeline({
 
   return (
     <div className={class_names.join(' ')}>
-      <div className="rat-timeline-entries" ref={scroll_ref}>
-        {show_latest_caption ? (
-          <span className="rat-timeline-latest">{resolved_labels.latest}</span>
-        ) : null}
-        {visible.length === 0 ? (
-          <div className="rat-timeline-empty">{resolved_labels.empty}</div>
-        ) : (
-          visible.map((row, index) => (
-            <TimelineEvent
-              key={row.entry.id ?? `rat-entry-${index}`}
-              entry={row.entry}
-              tool_result={row.tool_result}
-              is_expandable={is_expanded}
-              resolve_tool_name={resolve_tool_name}
-              labels={resolved_labels}
-            />
-          ))
-        )}
-      </div>
+      {/* THE POSITIONING CONTEXT FOR THE JUMP CONTROL, and the only reason this
+          wrapper exists. The control floats over the list, so it needs an
+          ancestor that is neither the scroll container (it would scroll away
+          with the content) nor the whole timeline (it would float over the
+          footer). This element is exactly the list's box and does not scroll. */}
+      <div className="rat-timeline-body">
+        <div className="rat-timeline-entries" ref={scroll_ref}>
+          {show_latest_caption ? (
+            <span className="rat-timeline-latest">
+              {resolved_labels.latest}
+            </span>
+          ) : null}
+          {visible.length === 0 ? (
+            <div className="rat-timeline-empty">{resolved_labels.empty}</div>
+          ) : (
+            visible.map((row, index) => (
+              <TimelineEvent
+                key={row.entry.id ?? `rat-entry-${index}`}
+                entry={row.entry}
+                tool_result={row.tool_result}
+                is_expandable={is_expanded}
+                resolve_tool_name={resolve_tool_name}
+                resolve_tool_argument={resolve_tool_argument}
+                labels={resolved_labels}
+              />
+            ))
+          )}
+        </div>
 
-      {/* Offered only where it does something: the reader has scrolled away
-          from the bottom and the newest entry is off screen. A permanently
-          visible jump control over an already-pinned view says the view is not
-          following when it is. */}
-      {is_expanded && !is_pinned ? (
-        <button
-          type="button"
-          className="rat-timeline-jump"
-          onClick={scroll_to_bottom}
-        >
-          {resolved_labels.jump_to_latest}
-        </button>
-      ) : null}
+        {/* Offered only where it does something: the reader has scrolled away
+            from the bottom and the newest entry is off screen. A permanently
+            visible jump control over an already-pinned view says the view is not
+            following when it is.
+
+            IT FLOATS RATHER THAN SITTING IN FLOW, which is the whole of why the
+            wrapper above exists. In flow it appeared and disappeared as the
+            reader scrolled, and the panel it lives in grew and shrank by the
+            control's own height underneath whatever they were reading — a
+            control whose job is to steady the view was the thing moving it. */}
+        {is_expanded && !is_pinned ? (
+          <button
+            type="button"
+            className="rat-timeline-jump"
+            onClick={scroll_to_bottom}
+          >
+            {resolved_labels.jump_to_latest}
+          </button>
+        ) : null}
+      </div>
 
       {has_footer ? (
         <div className="rat-timeline-footer">
@@ -227,6 +244,10 @@ AgentSessionTimeline.propTypes = {
   // `(entry) => string | null`, letting the consumer name a tool the entry
   // reports generically. See ToolEvent for why the package cannot do this.
   resolve_tool_name: PropTypes.func,
+  // `(entry) => [{ label, value }] | null`, the sibling seam for what the call
+  // was made WITH. Same reason as the name: only the consumer knows which of
+  // its tool's parameters identify a call.
+  resolve_tool_argument: PropTypes.func,
   labels: labels_prop_type,
   className: PropTypes.string
 }

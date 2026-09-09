@@ -1,8 +1,5 @@
 @import '../../styles/tokens.styl'
 
-.rat-event-row-assistant-message .rat-event-label
-  color $rat_accent
-
 // THE ONE ROW THAT IS NOT ONE LINE, and the exception is the point of the rest.
 //
 // Every other entry in the expanded list is clamped to a line, so what the
@@ -11,6 +8,17 @@
 // hundred rows of tool traffic is looking for exactly these. Full ink against
 // the muted rows around it and a little air above and below is the whole of the
 // emphasis; no ground, no rule, no box.
+//
+// NO LABEL AND THEREFORE NO LABEL COLUMN, which is the second half of the same
+// emphasis. Wearing the word ASSISTANT the row said again what its shape
+// already showed; without it the row also sheds the fixed indent every other
+// row keeps in order to line its body up, so the message starts at the same
+// left edge the panel does. That flush edge, against the indented one-line rows
+// above and below, is what says "this is the agent talking".
+//
+// A measure, because this is the only prose on the surface and prose set to the
+// full width of a share page is a line nobody can track back from. The same
+// 68ch the consuming page gives its own paragraphs.
 //
 // Scoped to the expanded list. Collapsed, the panel shows one row that changes
 // on every live entry, and an assistant message allowed to wrap there would
@@ -22,6 +30,7 @@
   text-overflow clip
   color $rat_text
   line-height 1.5
+  max-width 68ch
 
 .rat-timeline-expanded .rat-event-row-assistant-message .rat-event-row-main
   padding-top $rat_space

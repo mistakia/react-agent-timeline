@@ -124,6 +124,38 @@ export function tool_argument_of(entry) {
   return stringify_content(parameters)
 }
 
+/**
+ * Read a consumer's answer for what identifies a tool call, as fields.
+ *
+ * THE PACKAGE CANNOT ANSWER THIS AND MUST NOT TRY. `tool_argument_of` above is
+ * a guess ordered by how identifying a parameter USUALLY is, and for an agent
+ * whose tools are CLI scripts reached through a shell it is wrong every time:
+ * the `command` it picks is the whole invocation, and the query the call was
+ * actually about is a JSON field somewhere inside it. Only the consumer knows
+ * its own tools, so `resolve_tool_argument` is the seam that lets it say —
+ * exactly as `resolve_tool_name` does for the name.
+ *
+ * FIELDS RATHER THAN A STRING, because the identifying answer is routinely more
+ * than one thing: a catalog search is a query AND the grain it was run at, and
+ * joining them into one line loses which is which.
+ *
+ * Returns null for anything unusable, which is the signal to fall back to the
+ * package's own guess. A consumer only has to recognize the calls it knows.
+ */
+export function normalize_tool_fields(value) {
+  if (!Array.isArray(value)) return null
+
+  const fields = []
+  for (const field of value) {
+    const text = stringify_content(field?.value).trim()
+    if (!text) continue
+    const label = typeof field?.label === 'string' ? field.label.trim() : ''
+    fields.push({ label: label || null, value: text })
+  }
+
+  return fields.length ? fields : null
+}
+
 // Harness bookkeeping that base records as `system` entries, matched on the
 // content prefix.
 //
