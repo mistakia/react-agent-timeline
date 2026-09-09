@@ -6,7 +6,8 @@ Props in, JSX out. No Redux, no router, no fetch, and no knowledge of where entr
 
 ## Behaviour worth knowing before you use it
 
-- **Collapsed is one line, and it streams.** The row is derived from `entries`, so it advances on its own as they arrive; it is clamped to a single line because the newest entry is unbounded text and a wrapping row makes the host panel jump on every tick.
+- **Collapsed is one line, and it streams.** The row is derived from `entries`, so it advances on its own as they arrive; it is clamped to a single line because the newest entry is unbounded text and a wrapping row makes the host panel jump on every tick. A `Latest` caption sits on that line to say what it is — without one, a moving line under a panel reads as a summary or a heading rather than as the newest event.
+- **Every row is one line, and the assistant message is the exception.** That holds in the expanded list too, not only collapsed: a reasoning entry runs twenty lines and a run holds dozens, so unclamped they fill the panel and the tool calls between them cannot be reached. Each clamped row opens on its own disclosure. The agent's own prose is left whole, because it is the run's account of itself and the reason a reader opened the list.
 - **Expanded reads bottom-up, like a message chat.** It opens at the newest entry and follows new ones, unless the reader scrolls away — then nothing moves under them and a jump-to-latest control appears until they return to the bottom.
 - **`duration_ms` is rendered, never computed.** The consumer knows what started and finished the run; the package formats the number it is handed and shows nothing when handed none. The one exception is the LIVE counter: pass `is_running` and `started_at_ms` and the package ticks, because nothing has finished the run yet for the consumer to measure. It is an absolute epoch rather than an offset so a reload does not restart the clock at zero.
 - **A tool call and its result are ONE row.** The call shows the tool's name and its argument as a one-line chip; the result sits behind a disclosure on that row and is not rendered until the reader opens it. A FAILED call is the exception and shows its error inline — folding a failure away is how a run that spent minutes retrying a broken tool comes to look like progress.
@@ -16,7 +17,7 @@ Props in, JSX out. No Redux, no router, no fetch, and no knowledge of where entr
 
 ## Look
 
-Flat and ruled by default: no shadows, no card, no radius above 3px, and no iconography — the disclosure marker is a monospace `+`/`−` rather than a chevron. That is a decision, not a placeholder. The consuming application's design system states "rules, not boxes" and "no shadows for depth", so defaults that drew cards would be overridden on the first render, leaving one look defined in two places. Everything is a `--rat-*` custom property, so a consumer that does want depth adds it without rebuilding.
+Flat and ruled by default: no shadows, no card, no radius above 3px, and no iconography — the disclosure marker is a monospace `+`/`−` rather than a chevron, and the expand control wears the same glyph and a hairline outline so it is not mistaken for the tally and clock it shares a footer with. That is a decision, not a placeholder. The consuming application's design system states "rules, not boxes" and "no shadows for depth", so defaults that drew cards would be overridden on the first render, leaving one look defined in two places. Everything is a `--rat-*` custom property, so a consumer that does want depth adds it without rebuilding.
 
 ## Design rules
 

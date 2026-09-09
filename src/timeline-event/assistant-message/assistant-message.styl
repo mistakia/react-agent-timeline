@@ -2,3 +2,27 @@
 
 .rat-event-row-assistant-message .rat-event-label
   color $rat_accent
+
+// THE ONE ROW THAT IS NOT ONE LINE, and the exception is the point of the rest.
+//
+// Every other entry in the expanded list is clamped to a line, so what the
+// agent SAID is the only thing on the surface allowed to run to its natural
+// length — it is the run's own account of itself, and a reader scanning a
+// hundred rows of tool traffic is looking for exactly these. Full ink against
+// the muted rows around it and a little air above and below is the whole of the
+// emphasis; no ground, no rule, no box.
+//
+// Scoped to the expanded list. Collapsed, the panel shows one row that changes
+// on every live entry, and an assistant message allowed to wrap there would
+// make the host panel as tall as whatever the agent last said and jump on every
+// tick — which is the failure the collapsed clamp exists to prevent.
+.rat-timeline-expanded .rat-event-row-assistant-message .rat-event-body
+  white-space pre-wrap
+  overflow visible
+  text-overflow clip
+  color $rat_text
+  line-height 1.5
+
+.rat-timeline-expanded .rat-event-row-assistant-message .rat-event-row-main
+  padding-top $rat_space
+  padding-bottom $rat_space

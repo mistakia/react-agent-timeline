@@ -57,6 +57,10 @@ $rat_font_size_md = var(--rat-font-size-md, 13px)
 $rat_font_mono = var(--rat-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace)
 
 $rat_row_min_height = var(--rat-row-min-height, 24px)
+// How wide the label column is before a label is allowed to push it. Sized for
+// the longest fixed word the package renders (`ASSISTANT` at the small size),
+// so every one of them lines its body up at the same left edge.
+$rat_label_width = var(--rat-label-width, 62px)
 $rat_expanded_max_height = var(--rat-expanded-max-height, 320px)
 // How far a revealed tool result may run before it scrolls inside its own row.
 // A result is unbounded text and the panel above it already scrolls; without a

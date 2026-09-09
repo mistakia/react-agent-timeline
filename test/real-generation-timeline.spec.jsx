@@ -91,22 +91,36 @@ describe('a real generation timeline', function () {
     view.unmount()
   })
 
-  // Two entries become one row where a result was folded into its call, and a
-  // noise entry becomes none. Everything else is still one for one, and the
-  // expected count is DERIVED from the fixture rather than written down, so a
-  // change that starts dropping content fails here instead of moving a
-  // hard-coded number to match itself.
-  it('expands to one row per entry, folding results and dropping only noise', function () {
+  // Three kinds of entry do not get a row of their own: a result, which is
+  // folded into the call it answered; a noise entry, which is harness
+  // bookkeeping; and an entry with nothing in it, which would render as a label
+  // over a blank line. Everything else is one for one, and the expected count is
+  // DERIVED from the fixture rather than written down, so a change that starts
+  // dropping real content fails here instead of moving a hard-coded number to
+  // match itself.
+  it('expands to one row per entry, folding results and dropping only the silent ones', function () {
     const view = render(<AgentSessionTimeline is_expanded entries={entries} />)
 
     const results = entries.filter((entry) => entry.type === 'tool_result')
     const noise = entries.filter(is_noise_system_entry)
-    const expected = entries.length - results.length - noise.length
+    // A tool call is never silent -- the tool's NAME is that row's content --
+    // so the exemption is stated here rather than left to `has_display_content`,
+    // which reads the entry's text alone.
+    const silent = entries.filter(
+      (entry) =>
+        entry.type !== 'tool_result' &&
+        !is_noise_system_entry(entry) &&
+        entry_kind(entry) !== 'tool_call' &&
+        !has_display_content(entry)
+    )
+    const expected =
+      entries.length - results.length - noise.length - silent.length
 
-    // Both adjustments have to be real, or this assertion is just
+    // Every adjustment has to be real, or this assertion is just
     // `entries.length` wearing a disguise.
     expect(results.length).to.be.greaterThan(0)
     expect(noise.length).to.be.greaterThan(0)
+    expect(silent.length).to.be.greaterThan(0)
 
     expect(view.container.querySelectorAll('.rat-event-row')).to.have.length(
       expected

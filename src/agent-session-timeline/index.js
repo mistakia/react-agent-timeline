@@ -4,7 +4,11 @@ import PropTypes from 'prop-types'
 import TimelineEvent from '../timeline-event/index.js'
 import RunStatus from './run-status.js'
 import { order_entries } from './order-entries.mjs'
-import { latest_row, pair_tool_entries } from './pair-tool-entries.mjs'
+import {
+  latest_row,
+  pair_tool_entries,
+  row_has_content
+} from './pair-tool-entries.mjs'
 import { format_duration } from './format-duration.mjs'
 import { use_stick_to_bottom } from './use-stick-to-bottom.js'
 import {
@@ -53,7 +57,20 @@ export default function AgentSessionTimeline({
   // positional half of the join sound: it walks the same sequence the reader
   // sees. Filtering afterwards could drop a call and leave its result behind as
   // an orphan row.
-  const rows = React.useMemo(() => pair_tool_entries(ordered), [ordered])
+  //
+  // A ROW WITH NOTHING IN IT IS NOT AN EVENT. An assistant entry whose text was
+  // empty -- every message whose whole content was a tool use -- renders as the
+  // word ASSISTANT on a blank line, which tells a reader that something
+  // happened and nothing about what. The collapsed line has skipped these since
+  // the day a run ended on two of them and the panel reported "System" and
+  // nothing else; the expanded list kept drawing them, so the same empty entry
+  // was a defect on one surface and a row on the other. `row_has_content` is
+  // the predicate that decided it there, so it decides it here. A tool call
+  // with no argument still passes it -- the tool's NAME is that row's content.
+  const rows = React.useMemo(
+    () => pair_tool_entries(ordered).filter(row_has_content),
+    [ordered]
+  )
 
   // Selected over ROWS, not entries, so the collapsed line can never be a bare
   // tool result -- a result is part of the call's row, never an event of its
@@ -86,13 +103,28 @@ export default function AgentSessionTimeline({
   // status is a control the reader cannot use without the panel growing.
   const visible = is_expanded ? rows : latest ? [latest] : []
 
-  const can_toggle = Boolean(on_toggle_expanded) && ordered.length > 1
+  // Counted over ROWS rather than entries, so the control is offered only when
+  // expanding actually shows more than the collapsed line already does. Against
+  // the entry count it could promise a fuller run and open onto the same single
+  // row, once results were folded into their calls and empty entries dropped.
+  const can_toggle = Boolean(on_toggle_expanded) && rows.length > 1
   const has_footer =
     can_toggle || Boolean(duration_text) || is_running || tool_call_count > 0
+
+  // The caption that says what the collapsed row IS. Without it the row is one
+  // line of agent output under a panel, indistinguishable from a summary, a
+  // heading or the whole run rendered short -- and a reader who takes it for any
+  // of those reads a moving line as a static one. It is on the same line as the
+  // row rather than above it, because the collapsed surface is a status line
+  // and a second line would double the height of the thing it labels.
+  const show_latest_caption = !is_expanded && visible.length > 0
 
   return (
     <div className={class_names.join(' ')}>
       <div className="rat-timeline-entries" ref={scroll_ref}>
+        {show_latest_caption ? (
+          <span className="rat-timeline-latest">{resolved_labels.latest}</span>
+        ) : null}
         {visible.length === 0 ? (
           <div className="rat-timeline-empty">{resolved_labels.empty}</div>
         ) : (
@@ -125,35 +157,51 @@ export default function AgentSessionTimeline({
 
       {has_footer ? (
         <div className="rat-timeline-footer">
+          {/* THE ONE CONTROL ON THE FOOTER, and it wears a button's chrome
+              rather than a link's underline. It sits beside a tally and a clock
+              that are both text, and as text itself the reader had to work out
+              which of the three did something. The disclosure glyph is drawn by
+              the stylesheet, so the button's own text stays exactly the word the
+              consumer supplied. */}
           {can_toggle ? (
             <button
               type="button"
               className="rat-timeline-toggle"
+              aria-expanded={Boolean(is_expanded)}
               onClick={on_toggle_expanded}
             >
               {is_expanded ? resolved_labels.collapse : resolved_labels.expand}
             </button>
           ) : null}
 
-          {tool_call_count > 0 ? (
-            <span className="rat-timeline-count">
-              {tool_call_count}{' '}
-              {tool_call_count === 1
-                ? resolved_labels.tool_call_one
-                : resolved_labels.tool_call_many}
-            </span>
-          ) : null}
+          {/* WHAT THE RUN COST, kept together and pushed away from the control.
+              The tally and the clock are both readings ABOUT the run, and
+              sitting them in the same group is what stops the footer from
+              reading as three peers of which one happens to be pressable. */}
+          <span className="rat-timeline-meta">
+            {tool_call_count > 0 ? (
+              <span className="rat-timeline-count">
+                {tool_call_count}{' '}
+                {tool_call_count === 1
+                  ? resolved_labels.tool_call_one
+                  : resolved_labels.tool_call_many}
+              </span>
+            ) : null}
 
-          {/* A run is either going or it is over, so the live counter and the
-              final duration are the same slot rather than two. Rendering both
-              would put a frozen number beside a moving one. */}
-          {is_running ? (
-            <RunStatus started_at_ms={started_at_ms} labels={resolved_labels} />
-          ) : duration_text ? (
-            <span className="rat-timeline-duration">
-              {resolved_labels.duration} {duration_text}
-            </span>
-          ) : null}
+            {/* A run is either going or it is over, so the live counter and the
+                final duration are the same slot rather than two. Rendering both
+                would put a frozen number beside a moving one. */}
+            {is_running ? (
+              <RunStatus
+                started_at_ms={started_at_ms}
+                labels={resolved_labels}
+              />
+            ) : duration_text ? (
+              <span className="rat-timeline-duration">
+                {resolved_labels.duration} {duration_text}
+              </span>
+            ) : null}
+          </span>
         </div>
       ) : null}
     </div>

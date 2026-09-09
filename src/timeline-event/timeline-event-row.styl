@@ -64,19 +64,37 @@
   // label column from shifting by a pixel every time a row is opened.
   text-align center
 
+// A COLUMN, NOT A PREFIX. `min-width` rather than `width`, so the four fixed
+// words -- You, Thinking, Assistant, System -- line their bodies up at one left
+// edge and the list reads as a table of what happened, while a tool NAME, which
+// is an identifier of any length, is still allowed to push past it rather than
+// being truncated into a different string.
 .rat-event-label
   flex none
+  min-width $rat_label_width
   font-size $rat_font_size_sm
   font-weight 600
   letter-spacing 0.02em
   text-transform uppercase
   color $rat_text_subtle
 
+// ONE LINE IS THE DEFAULT FOR EVERY ROW, and the exceptions are written where
+// they are earned: the assistant message, whose prose is the run's own account
+// of itself, and an opened detail block.
+//
+// This used to be scoped to the COLLAPSED timeline, on the reasoning that the
+// expanded list is where a reader wants everything. It is not: a run's thinking
+// entries are twenty lines each and there are dozens of them, so unclamped they
+// filled the panel end to end and the tool calls between them were unreachable
+// without scrolling past someone else's deliberation. Clamped, the list is a
+// list of steps and the full text is one click away on the row that holds it.
 .rat-event-body
   flex 1 1 auto
   min-width 0
   overflow-wrap anywhere
-  white-space pre-wrap
+  white-space nowrap
+  overflow hidden
+  text-overflow ellipsis
 
 .rat-event-row-muted .rat-event-body
   color $rat_text_muted

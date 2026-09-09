@@ -2,12 +2,3 @@
 
 .rat-event-row-user-message
   background $rat_bg_subtle
-
-// The message's revealed body is the instruction itself, prose rather than a
-// tool's mono output, so it shakes off the detail block's terminal styling.
-// Everything else about the detail — the indent, the seam, the bounded height —
-// stays, because the disclosure is the same object it is everywhere else.
-.rat-event-row-user-message .rat-event-detail
-  color $rat_text
-  font-family inherit
-  font-size $rat_font_size_md

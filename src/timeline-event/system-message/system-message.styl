@@ -1,4 +1,9 @@
 @import '../../styles/tokens.styl'
 
-.rat-event-row-system-message
-  border-left 2px solid $rat_border
+// NO LEFT RULE. A system record used to carry a 2px bar down its left edge, and
+// beside the flush rows around it that bar read as a quote or an error margin
+// rather than as a category — every consecutive pair of them drew a ladder in
+// the gutter. The row is already told apart by its label and its mute, which is
+// the same device every other type here is distinguished by.
+.rat-event-row-system-message .rat-event-label
+  color $rat_text_subtle

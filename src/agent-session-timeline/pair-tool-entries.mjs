@@ -100,13 +100,14 @@ function row_head(row) {
 }
 
 /**
- * Whether a row has anything for the collapsed line to say.
+ * Whether a row has anything to say — on the collapsed line, and now on the
+ * expanded list, which renders only rows that pass.
  *
  * A tool call always does, even with an empty argument: the tool's NAME is the
  * content of that row. Deferring to `has_display_content` on the call entry
  * alone would skip a no-argument call and show something older instead.
  */
-function row_has_content(row) {
+export function row_has_content(row) {
   if (!row?.entry) return false
   if (entry_kind(row.entry) === ENTRY_KIND.TOOL_CALL) return true
   if (has_display_content(row.entry)) return true
