@@ -72,4 +72,48 @@ describe('the row stylesheet', () => {
       'user-message'
     ])
   })
+
+  // THE TOOL ARGUMENT DRAWS NO BOX. The chip was a bordered, grounded box on
+  // every argument, and a run that is mostly tool calls rendered as dozens of
+  // boxes down the list — the "rules, not boxes" rule the consuming design
+  // system states outright. Written against every `.rat-event-body` block in
+  // every per-type stylesheet (the same surface the left-rule check above
+  // sweeps), so a chip returning on a different type is the same defect wearing
+  // a different class name. The detail seam below the row keeps its own
+  // border-top, which is a rule between the row and its reveal rather than a
+  // box around a body; it is not caught here because it is not a `.rat-event-body`
+  // block.
+  it('draws no border and no ground around any event body', () => {
+    const per_type = fs
+      .readdirSync(path.join(src, 'timeline-event'), { withFileTypes: true })
+      .filter((item) => item.isDirectory())
+      .map((item) => emit('timeline-event', item.name, `${item.name}.styl`))
+
+    // Every `.rat-event-body` block across the whole per-type set, whichever
+    // stylesheet happens to declare it. Some per-type stylesheets do not touch
+    // the body, so the blocks are gathered rather than demanded of each file --
+    // the TOTAL must be non-zero, which is what proves the gatherer can read a
+    // chip's border if one ever returns.
+    const body_blocks = [row_css, ...per_type].flatMap((css) => [
+      ...css.matchAll(/\.rat-event-body\s*\{([^}]*)\}/g)
+    ])
+    expect(body_blocks.length).to.be.greaterThan(0)
+
+    for (const { 1: block } of body_blocks) {
+      expect(block).to.not.match(/border/)
+      expect(block).to.not.match(/background/)
+    }
+  })
+
+  // The control for the check above: a chip border and ground reintroduced on a
+  // tool body WOULD be caught by it.
+  it('would see a chip border and ground if one were present', () => {
+    const probe = stylus(
+      '.rat-event-row-tool-call .rat-event-body\n  border 1px solid #d9dadd\n  background #f4f4f5'
+    ).render()
+    const block = probe.match(/\.rat-event-body\s*\{([^}]*)\}/)?.[1]
+    expect(block).to.be.a('string')
+    expect(block).to.match(/border/)
+    expect(block).to.match(/background/)
+  })
 })

@@ -139,6 +139,12 @@ export function tool_argument_of(entry) {
  * than one thing: a catalog search is a query AND the grain it was run at, and
  * joining them into one line loses which is which.
  *
+ * A FIELD MAY CARRY A TONE, which the row renders as its message's register.
+ * Only `error` is styled — the accent is spent on failure and nothing else —
+ * so a consumer signalling a failed outcome (a validation that did not pass,
+ * a preview that errored) gets the accent on the line without the package
+ * needing to know which tool failed.
+ *
  * Returns null for anything unusable, which is the signal to fall back to the
  * package's own guess. A consumer only has to recognize the calls it knows.
  */
@@ -150,7 +156,15 @@ export function normalize_tool_fields(value) {
     const text = stringify_content(field?.value).trim()
     if (!text) continue
     const label = typeof field?.label === 'string' ? field.label.trim() : ''
-    fields.push({ label: label || null, value: text })
+    const field_out = { label: label || null, value: text }
+    const tone =
+      typeof field?.tone === 'string' && field.tone.trim().length
+        ? field.tone.trim()
+        : null
+    // Omitted rather than null: the field carries no register unless the
+    // consumer gave it one, and a null key would be a third shape to read.
+    if (tone) field_out.tone = tone
+    fields.push(field_out)
   }
 
   return fields.length ? fields : null

@@ -100,7 +100,13 @@
   color $rat_text_muted
   font-style italic
 
+// THE TOOL'S OWN FACE, worn by every row whose body is a tool's payload — the
+// recorded call, a shell invocation the consumer left unresolved, an errored
+// call and an orphan result. The face is what identifies a tool line at a
+// glance now that the argument draws no box around itself.
 .rat-event-row-tool-call .rat-event-body,
+.rat-event-row-tool-bash .rat-event-body,
+.rat-event-row-tool-error .rat-event-body,
 .rat-event-row-tool-result .rat-event-body
   font-family $rat_font_mono
   font-size $rat_font_size_sm

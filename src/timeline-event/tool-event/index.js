@@ -118,9 +118,19 @@ export default function ToolEvent({
 
   // What the consumer says identifies this call, when it recognizes it. Null
   // for a tool it does not know, and the package's own guess stands.
+  //
+  // THE SEAM IS ASKED FOR THE SURFACE IT IS RENDERING ON, not only for the
+  // entry. A tool call that produced something reads differently collapsed (a
+  // one-line status, where the outcome is what happened) than it does in the
+  // expanded list (where the reader can open the row and the request is what
+  // it was about). The consumer decides which its tools want; the package only
+  // hands it the paired result and which half of the surface it is standing on.
   const fields = normalize_tool_fields(
     typeof resolve_tool_argument === 'function'
-      ? resolve_tool_argument(entry)
+      ? resolve_tool_argument(entry, {
+          tool_result,
+          is_collapsed: !is_expandable
+        })
       : null
   )
 
@@ -142,7 +152,14 @@ export default function ToolEvent({
       <>
         {show_argument_detail ? (
           <div className="rat-tool-section">
-            <span className="rat-tool-caption">{labels.tool_call}</span>
+            {/* THE CAPTION NAMES THE BLOCK, AND ONLY A NAMED TOOL EARNS ONE.
+                An unresolved bash row's reveal holds a shell invocation, not a
+                tool, and "Tool" above it would call the shell line what it is
+                not. The row's label already says `bash`; the command needs no
+                caption of its own. */}
+            {name_was_resolved ? (
+              <span className="rat-tool-caption">{labels.tool_call}</span>
+            ) : null}
             <div className="rat-tool-text">{argument_text}</div>
           </div>
         ) : null}
@@ -167,7 +184,14 @@ export default function ToolEvent({
                 {field.label ? (
                   <span className="rat-tool-field-label">{field.label}</span>
                 ) : null}
-                <span className="rat-tool-field-value">
+                <span
+                  className={
+                    'rat-tool-field-value' +
+                    (field.tone === 'error'
+                      ? ' rat-tool-field-value--error'
+                      : '')
+                  }
+                >
                   {to_single_line(field.value)}
                 </span>
               </span>
@@ -208,8 +232,12 @@ ToolEvent.propTypes = {
   // entry's own `tool_name`, so a consumer only has to recognize the calls it
   // knows about.
   resolve_tool_name: PropTypes.func,
-  // `(entry) => [{ label, value }] | null`. The same contract for the ARGUMENT:
-  // the fields that identify this call, in the order a reader should read them.
-  // Anything else defers to the package's own guess.
+  // `(entry, context) => [{ label, value, tone }] | null`. The same contract
+  // for the ARGUMENT: the fields that identify this call, in the order a reader
+  // should read them. `context` is `{ tool_result, is_collapsed }` — the paired
+  // result when one has arrived, and which half of the surface is rendering —
+  // so a consumer can read the outcome of its own tools and pick the collapsed
+  // line's message. `tone: 'error'` spends the accent on the value. Anything
+  // else defers to the package's own guess.
   resolve_tool_argument: PropTypes.func
 }

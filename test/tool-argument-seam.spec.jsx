@@ -125,6 +125,88 @@ describe('the tool argument seam', () => {
 
     view.unmount()
   })
+
+  // THE SEAM IS ASKED FOR THE SURFACE IT RENDERS ON. A call reads differently
+  // in the expanded list (a record, where the request is the thing) than on the
+  // collapsed status line (where the outcome is the thing), and the consumer is
+  // the only side that can tell the two messages apart for its own tools — so
+  // the row says which half it is showing and hands over the paired result.
+  it('hands the resolver the paired result and the surface it renders on', () => {
+    const seen = []
+    const tool_result = {
+      id: 'result',
+      type: 'tool_result',
+      content: { tool_call_id: 'c1', result: 'ok' }
+    }
+    const resolver = (...args) => {
+      seen.push(args)
+      return search_fields()
+    }
+
+    const expanded = render(
+      expanded_row({
+        resolve_tool_name: () => 'search_columns',
+        resolve_tool_argument: resolver,
+        tool_result
+      })
+    )
+    expect(seen[0][1]).to.eql({ tool_result, is_collapsed: false })
+    expanded.unmount()
+
+    seen.length = 0
+    const collapsed = render(
+      <TimelineEvent
+        entry={shell_call(INVOCATION)}
+        tool_result={tool_result}
+        resolve_tool_name={() => 'search_columns'}
+        resolve_tool_argument={resolver}
+      />
+    )
+    expect(seen[0][1]).to.eql({ tool_result, is_collapsed: true })
+    collapsed.unmount()
+  })
+
+  // A field the consumer marks failed spends the accent on the value that says
+  // so — the one register the accent owns. The control is the untinted field,
+  // which must not carry the class.
+  it('tints a value the consumer marked as a failure', () => {
+    const view = render(
+      expanded_row({
+        resolve_tool_name: () => 'search_columns',
+        resolve_tool_argument: () => [
+          { label: 'query', value: 'fantasy points' },
+          { value: 'no results', tone: 'error' }
+        ]
+      })
+    )
+
+    const values = [...view.container.querySelectorAll('.rat-tool-field-value')]
+    expect(values[0].className).to.not.contain('--error')
+    expect(values[1].className).to.contain('rat-tool-field-value--error')
+    expect(values[1].textContent).to.equal('no results')
+
+    view.unmount()
+  })
+
+  // The disclosure's argument caption says what the block holds. A row the
+  // consumer NAMES holds a tool; a row it leaves unresolved holds a shell
+  // line, and "Tool" above that would call the shell command what it is not.
+  it("names an unresolved bash row's reveal without a tool caption", () => {
+    const long_command = `echo '{"query":"${'x'.repeat(140)}"}' | node scripts/search.mjs`
+    const view = render(
+      <TimelineEvent entry={shell_call(long_command)} is_expandable />
+    )
+
+    const toggle = view.container.querySelector('.rat-event-row-toggle')
+    expect(toggle).to.not.equal(null)
+    act(() => toggle.click())
+
+    const detail = view.container.querySelector('.rat-event-detail')
+    expect(detail.textContent).to.contain('scripts/search.mjs')
+    expect(detail.querySelector('.rat-tool-caption')).to.equal(null)
+
+    view.unmount()
+  })
 })
 
 describe('normalize_tool_fields', () => {
@@ -157,5 +239,19 @@ describe('normalize_tool_fields', () => {
     expect(normalize_tool_fields([])).to.equal(null)
     expect(normalize_tool_fields([{ value: '' }])).to.equal(null)
     expect(normalize_tool_fields('fantasy points')).to.equal(null)
+  })
+
+  it("carries a field's tone, and omits it when a field has none", () => {
+    expect(
+      normalize_tool_fields([{ label: 'query', value: 'fantasy points' }])
+    ).to.eql([{ label: 'query', value: 'fantasy points' }])
+
+    expect(
+      normalize_tool_fields([{ label: 'query', value: 'ppr', tone: 'error' }])
+    ).to.eql([{ label: 'query', value: 'ppr', tone: 'error' }])
+
+    expect(normalize_tool_fields([{ value: 'hide me', tone: '   ' }])).to.eql([
+      { label: null, value: 'hide me' }
+    ])
   })
 })

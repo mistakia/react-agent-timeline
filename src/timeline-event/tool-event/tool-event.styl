@@ -16,36 +16,20 @@
 .rat-event-row-tool-error .rat-event-label
   color $rat_text_error
 
-// The argument, set as a chip against its own ground.
+// The argument, on the row's own ground. NOT a chip.
 //
-// Flat by construction: a hairline rule and a 2px radius, no shadow and no
-// raise. What separates it from the row is the ground shift and the rule, which
-// is the same device the rest of this surface uses.
+// A run is mostly tool calls, so a bordered box per argument is dozens of boxes
+// down the list, on a surface whose stated rule is "rules, not boxes". The box
+// carried no structure the row does not already have: the mono face comes from
+// the shared row rule and the one-line clamp from `.rat-event-body`, and what
+// distinguishes the argument from the rest of the row is that face -- the same
+// device every distinctive line on this surface uses. The field captions below
+// keep a multi-field answer legible without a container around it.
 //
-// Clamped to one line unconditionally -- not only in the collapsed timeline.
-// These arguments are routinely a kilobyte of single-line JSON, and a chip
-// allowed to wrap would be twenty lines tall in a list whose whole job is to be
-// scannable. The full text is behind the row's disclosure.
-//
-// The shell row shares the chip: a genuinely-unresolved bash call is still a
-// command on one line, and the `$ ` prompt belongs on the same ground as the
-// chip rather than on a label of its own.
-.rat-event-row-tool-call .rat-event-body,
-.rat-event-row-tool-bash .rat-event-body
-  align-self center
-  padding 1px $rat_space_sm
-  border 1px solid $rat_border
-  border-radius $rat_radius_sm
-  background $rat_field
-  color $rat_text_muted
-  white-space nowrap
-  overflow hidden
-  text-overflow ellipsis
-
-.rat-event-row-tool-call .rat-event-row-toggle:hover .rat-event-body,
-.rat-event-row-tool-bash .rat-event-row-toggle:hover .rat-event-body
-  border-color $rat_border_strong
-  color $rat_text
+// Clamping, not wrapping, is still the whole of the row's shape: these
+// arguments are routinely a kilobyte of single-line JSON, and a body allowed to
+// wrap would be twenty lines tall in a list whose job is to be scannable. The
+// full text is behind the row's disclosure.
 
 // The identifying fields inside the chip, when the consumer supplied them.
 //
@@ -79,7 +63,7 @@
   text-transform uppercase
 
 // The value carries the ink, because the value is the answer. Clamped like
-// everything else on a row: the chip is one line and a long query truncates
+// everything else on a row: the body is one line and a long query truncates
 // rather than wrapping the list open.
 .rat-tool-field-value
   min-width 0
@@ -87,6 +71,11 @@
   overflow hidden
   text-overflow ellipsis
   white-space nowrap
+
+// A field the consumer marked as a failure. The accent is spent on exactly one
+// register -- the value that says a call did not produce its answer.
+.rat-tool-field-value--error
+  color $rat_text_error
 
 // One captioned block inside a revealed row: the full argument, or the result.
 .rat-tool-section + .rat-tool-section
