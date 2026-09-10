@@ -65,8 +65,16 @@
 // radius. A bordered rounded rectangle around the list is a card, which is the
 // one construction the consuming design system rules out, and it read as a
 // panel-within-a-panel when it was one.
+// THE FLOATING JUMP CONTROL NEEDS GROUND TO FLOAT OVER, and the list has to
+// give it: the control is absolute and opaque, so with no padding under the
+// last entry it parks on top of whatever row is at the foot of the scroll and
+// that row is unreadable for as long as the reader is scrolled up. Measured on
+// production, it covered the bottom 8px of the list's content box. The reserve
+// is the control's own height plus the gap it sits at, and it costs nothing
+// when the control is hidden — it reads as the list's bottom margin.
 .rat-timeline-expanded .rat-timeline-entries
   max-height $rat_expanded_max_height
+  padding-bottom $rat_jump_clearance
   overflow-y auto
   overflow-anchor none
   border-top 1px solid $rat_border_strong

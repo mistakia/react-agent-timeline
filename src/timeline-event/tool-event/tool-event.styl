@@ -38,14 +38,24 @@
 // splitting them into separate grounds would read as separate arguments to
 // separate things. What separates them inside the chip is the caption face and
 // a gap, which is the same device the row's own label column uses.
+// BLOCK-LEVEL FLEX, NOT INLINE-FLEX, and that is what makes a long argument
+// truncate instead of being sheared off. `.rat-event-body` carries the row's
+// `overflow: hidden` and `text-overflow: ellipsis`, but an ellipsis can only be
+// drawn on a text node — an inline-flex child sizes itself to max-content and
+// simply overflows past the clip, so the same run of SQL that gets a `…` on a
+// thinking row was cut mid-glyph at the panel's edge on every field-rendered
+// one. Filling the body's width instead lets the fields shrink inside it and
+// the value below draw its own ellipsis.
 .rat-tool-fields
-  display inline-flex
+  display flex
   align-items baseline
   gap $rat_space
   min-width 0
+  flex 1 1 auto
+  overflow hidden
 
 .rat-tool-field
-  display inline-flex
+  display flex
   align-items baseline
   gap $rat_space_sm
   min-width 0
@@ -77,6 +87,17 @@
 .rat-tool-field-value--error
   color $rat_text_error
 
+// A FAILED CALL'S FIELDS ARE FAILED FIELDS, which the row rule alone cannot
+// say. `.rat-event-row-tool-error .rat-event-body` sets the error ink, and the
+// value rule above it re-declares `$rat_text` on the very span that carries the
+// text -- so an errored call rendered its argument in ordinary ink and the only
+// mark of the failure was the tool name. Measured on production: an errored
+// `run_sql` drew its statement at `rgb(68, 68, 68)` inside a body computing the
+// error ink. This is the same override the path spans below already restate for
+// the same reason.
+.rat-event-row-tool-error .rat-tool-field-value
+  color $rat_text_error
+
 // A path argument: the file in full ink, the directories ahead of it set back.
 //
 // TWO WEIGHTS OF ONE STRING, not two elements a reader has to join. The prefix
@@ -87,10 +108,15 @@
 // The name is allowed to shrink but never before the prefix does: on a narrow
 // panel the directories give way and the filename survives, which is the whole
 // reason the two are separate elements.
+// Block-level flex for the same reason `.rat-tool-fields` is: inside an
+// inline-flex sized to max-content neither span shrinks, so a path longer than
+// the panel shears at the clip instead of giving way at the prefix.
 .rat-tool-path
-  display inline-flex
+  display flex
   align-items baseline
   min-width 0
+  flex 1 1 auto
+  overflow hidden
 
 .rat-tool-path-prefix
   flex 0 1 auto

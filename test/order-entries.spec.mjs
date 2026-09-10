@@ -1,6 +1,7 @@
 import { expect } from 'chai'
 
 import {
+  drop_repeated_system_entries,
   is_latest_event_advance,
   latest_entry,
   order_entries
@@ -110,5 +111,70 @@ describe('latest_entry', () => {
 
   it('returns null for an empty timeline', () => {
     expect(latest_entry([])).to.equal(null)
+  })
+})
+
+describe('drop_repeated_system_entries', () => {
+  const system_entry = (id, content) => ({ id, type: 'system', content })
+
+  // The shape measured on a real generation share: twelve system rows in an
+  // eighty-four row run, all twelve byte-identical at their full stored length,
+  // spread through the run rather than adjacent. A consecutive-only rule would
+  // have dropped none of them, which is why the seen-set spans the whole list.
+  it('keeps one row per distinct system text, however far apart the repeats', () => {
+    const prompt = 'the run context, re-recorded every turn'
+    const kept = drop_repeated_system_entries([
+      system_entry('a', prompt),
+      { id: 'tool', type: 'message', role: 'assistant', content: 'working' },
+      system_entry('b', prompt),
+      { id: 'think', type: 'message', role: 'assistant', content: 'thinking' },
+      system_entry('c', prompt)
+    ])
+
+    expect(kept.map((item) => item.id)).to.deep.equal(['a', 'tool', 'think'])
+  })
+
+  // The FIRST occurrence survives, so the list still says the context applied
+  // and says it at the point it first did.
+  it('keeps the first occurrence, not the last', () => {
+    const kept = drop_repeated_system_entries([
+      system_entry('first', 'same'),
+      system_entry('second', 'same')
+    ])
+
+    expect(kept).to.have.length(1)
+    expect(kept[0].id).to.equal('first')
+  })
+
+  // A system block that genuinely CHANGES mid-run is a different string and is
+  // a different row. This is the case a naive "drop every system row after the
+  // first" would lose, and it is the reason the rule keys on the text.
+  it('keeps a system entry whose text differs from the ones before it', () => {
+    const kept = drop_repeated_system_entries([
+      system_entry('a', 'first context'),
+      system_entry('b', 'first context'),
+      system_entry('c', 'a reminder injected later')
+    ])
+
+    expect(kept.map((item) => item.id)).to.deep.equal(['a', 'c'])
+  })
+
+  it('touches nothing that is not a system entry', () => {
+    const twice = [
+      { id: 'x', type: 'message', role: 'assistant', content: 'same' },
+      { id: 'y', type: 'message', role: 'assistant', content: 'same' }
+    ]
+
+    expect(drop_repeated_system_entries(twice)).to.have.length(2)
+  })
+
+  // The control: the filter is capable of dropping, so the assertions above
+  // are not passing because it returns its input untouched.
+  it('would drop nothing if the repeats were distinct', () => {
+    const distinct = [system_entry('a', 'one'), system_entry('b', 'two')]
+    expect(drop_repeated_system_entries(distinct)).to.have.length(2)
+
+    const repeats = [system_entry('a', 'one'), system_entry('b', 'one')]
+    expect(drop_repeated_system_entries(repeats)).to.have.length(1)
   })
 })

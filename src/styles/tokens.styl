@@ -59,6 +59,11 @@ $rat_row_min_height = var(--rat-row-min-height, 24px)
 // to set this width and no longer exists — the assistant row carries no label.
 $rat_label_width = var(--rat-label-width, 56px)
 $rat_expanded_max_height = var(--rat-expanded-max-height, 320px)
+// The ground the floating jump control needs beneath the last entry so it never
+// parks on top of one. The control is a row of small uppercase in a hairline
+// box at $rat_space from the list's bottom edge; 32px covers both with a little
+// air, and is a token so a consumer that restyles the control can restate it.
+$rat_jump_clearance = var(--rat-jump-clearance, 32px)
 // How far a revealed tool result may run before it scrolls inside its own row.
 // A result is unbounded text and the panel above it already scrolls; without a
 // ceiling here one 4kB result makes the outer scrollbar meaningless.

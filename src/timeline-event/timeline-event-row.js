@@ -39,11 +39,15 @@ export default function TimelineEventRow({
 
   const main = (
     <>
-      {on_toggle ? (
-        <span className="rat-event-marker" aria-hidden="true">
-          {is_expanded ? '−' : '+'}
-        </span>
-      ) : null}
+      {/* ALWAYS RENDERED, EMPTY WHEN THE ROW CANNOT OPEN. The slot is what puts
+          every label on one left edge, so omitting it for the rows that have no
+          disclosure is exactly what it exists to prevent — measured on a real
+          run, a `Thinking` entry short enough to need no disclosure started 17px
+          left of every row around it, and a list read down its left edge picked
+          those out as a different kind of thing. */}
+      <span className="rat-event-marker" aria-hidden="true">
+        {on_toggle ? (is_expanded ? '−' : '+') : ''}
+      </span>
       {/* Omitted rather than rendered empty when a row has no label. The label
           is a fixed-width COLUMN, so an empty one indents the body of a row
           that has nothing to line up with — which is exactly the row that most

@@ -107,6 +107,44 @@ export function order_entries(entries) {
 }
 
 /**
+ * Drop every system entry whose text repeats one already shown.
+ *
+ * A harness re-records its system context on each turn, so the same block
+ * arrives once per turn with nothing about it changed. Measured on a real
+ * generation share: twelve system rows in an eighty-four row run, all twelve
+ * byte-identical at their full stored length, each offering a disclosure that
+ * opened onto the same text as the one four rows above. That is one row of
+ * information rendered twelve times, and it is the user's own request, which
+ * the run already opens with.
+ *
+ * REPEATS ANYWHERE, NOT JUST CONSECUTIVE ONES. The twelve were spread through
+ * the run with tool calls and reasoning between them, so a consecutive-only
+ * rule would have dropped none of them.
+ *
+ * The FIRST occurrence always survives. A system block that genuinely changes
+ * mid-run — a re-prompt, an injected reminder — is a different string and
+ * renders as its own row, which is the reading a reader wants: the list shows
+ * each distinct system context once, at the point it first applied.
+ */
+export function drop_repeated_system_entries(entries) {
+  if (!Array.isArray(entries)) return []
+
+  const seen = new Set()
+
+  return entries.filter((entry) => {
+    if (entry?.type !== 'system') return true
+    if (is_redacted_entry(entry) || is_elided_entry(entry)) return true
+
+    const text = to_single_line(entry_summary_text(entry))
+    if (!text) return true
+    if (seen.has(text)) return false
+
+    seen.add(text)
+    return true
+  })
+}
+
+/**
  * Whether an entry has anything for the collapsed row to say.
  *
  * Both degraded shapes count as content and must never be skipped: a redacted

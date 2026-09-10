@@ -63,6 +63,28 @@ describe('the jump-to-latest stylesheet', () => {
     )
   })
 
+  // AN OPAQUE CONTROL FLOATING OVER A LIST HIDES WHATEVER IS UNDER IT, and the
+  // list is what has to give the ground. Measured on production before this
+  // rule: the entries list carried `padding-bottom: 0`, so the control parked
+  // on the bottom 8px of the last visible row and that row was unreadable for
+  // as long as the reader was scrolled up — the one state the control exists
+  // to serve.
+  it('reserves ground under the last entry so the control covers no row', () => {
+    const entries = rule_for('.rat-timeline-expanded .rat-timeline-entries')
+    expect(entries).to.be.a('string')
+    expect(entries).to.match(/padding-bottom:\s*var\(--rat-jump-clearance/)
+  })
+
+  // The control for the check above: the reserve is real ground and not a zero.
+  it('would see a zero reserve as a failure', () => {
+    const tokens = fs.readFileSync(
+      path.join(path.dirname(file), '..', 'styles', 'tokens.styl'),
+      'utf8'
+    )
+    const fallback = tokens.match(/--rat-jump-clearance,\s*(\d+)px/)?.[1]
+    expect(Number(fallback)).to.be.greaterThan(24)
+  })
+
   // The control for the three checks above: the reader finds real rules in this
   // stylesheet, and it can tell an absent declaration from an absent rule.
   it('would see the declarations if they were missing', () => {

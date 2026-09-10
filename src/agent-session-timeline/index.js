@@ -3,7 +3,10 @@ import PropTypes from 'prop-types'
 
 import TimelineEvent from '../timeline-event/index.js'
 import RunStatus from './run-status.js'
-import { order_entries } from './order-entries.mjs'
+import {
+  drop_repeated_system_entries,
+  order_entries
+} from './order-entries.mjs'
 import {
   latest_row,
   pair_tool_entries,
@@ -51,7 +54,12 @@ export default function AgentSessionTimeline({
   const ordered = React.useMemo(() => {
     const in_order = order_entries(entries)
     if (!hide_noise) return in_order
-    return in_order.filter((entry) => !is_noise_system_entry(entry))
+    // Both halves of the same job — a system row that says nothing, and a system
+    // row that says what an earlier one already said. The repeat pass runs
+    // second so it only ever sees rows that survived the noise patterns.
+    return drop_repeated_system_entries(
+      in_order.filter((entry) => !is_noise_system_entry(entry))
+    )
   }, [entries, hide_noise])
 
   // Pairing runs over the FILTERED, ORDERED list, which is what makes the

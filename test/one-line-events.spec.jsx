@@ -279,3 +279,151 @@ describe('an entry with nothing in it', () => {
     view.unmount()
   })
 })
+
+// THE LABEL COLUMN IS A COLUMN, and a row that cannot open must still occupy
+// its marker slot or it is not in that column.
+//
+// The defect: the marker span was rendered only for expandable rows, so the
+// short entries — a thinking line under the collapse threshold, an assistant
+// answer — started their label 17px left of every row around them. Measured on
+// production, down a run of eighty-four rows: the ones a reader most wants to
+// pick out by scanning the left edge were the ones that had left it.
+describe('the marker slot is a column', () => {
+  const marker_of = (container) => container.querySelector('.rat-event-marker')
+
+  it('renders the slot for a row that cannot open', () => {
+    const view = render(
+      <TimelineEvent
+        entry={{
+          id: 'short',
+          type: 'thinking',
+          content: 'short enough to fit',
+          ordering: ordering(0)
+        }}
+        labels={DEFAULT_LABELS}
+        is_expandable
+      />
+    )
+
+    expect(view.container.querySelector('.rat-event-row-expandable')).to.equal(
+      null
+    )
+    expect(marker_of(view.container)).to.not.equal(null)
+    expect(marker_of(view.container).textContent).to.equal('')
+
+    view.unmount()
+  })
+
+  it('renders the same slot carrying a glyph for a row that can', () => {
+    const view = render(
+      <TimelineEvent
+        entry={{
+          id: 'long',
+          type: 'thinking',
+          content: long_prose('tail'),
+          ordering: ordering(0)
+        }}
+        labels={DEFAULT_LABELS}
+        is_expandable
+      />
+    )
+
+    expect(
+      view.container.querySelector('.rat-event-row-expandable')
+    ).to.not.equal(null)
+    expect(marker_of(view.container).textContent).to.equal('+')
+
+    view.unmount()
+  })
+
+  // The control: every row in a mixed run has exactly one slot, so the two
+  // cases above are not both passing on the same rendering.
+  it('gives every row in a mixed run exactly one slot', () => {
+    const view = render(
+      <AgentSessionTimeline
+        is_expanded
+        labels={DEFAULT_LABELS}
+        entries={[
+          {
+            id: 'a',
+            type: 'thinking',
+            content: 'short',
+            ordering: ordering(0)
+          },
+          {
+            id: 'b',
+            type: 'thinking',
+            content: long_prose('tail'),
+            ordering: ordering(1)
+          }
+        ]}
+      />
+    )
+
+    const rows = view.container.querySelectorAll('.rat-event-row')
+    expect(rows.length).to.equal(2)
+    for (const row of rows) {
+      expect(row.querySelectorAll('.rat-event-marker').length).to.equal(1)
+    }
+
+    view.unmount()
+  })
+})
+
+// THE SAME SYSTEM CONTEXT, RENDERED ONCE. A harness re-records its system block
+// on every turn, so a run carries one row of information many times over —
+// measured on a real generation share: twelve system rows in an eighty-four row
+// entry list, every one byte-identical, each offering a disclosure onto the
+// same text.
+//
+// Wired at the component rather than only unit-tested on the filter, because a
+// filter that exists and is never called is exactly the shape this check has to
+// rule out.
+describe('a repeated system context', () => {
+  const system_entry = (index, content) => ({
+    id: `sys-${index}`,
+    type: 'system',
+    content,
+    ordering: ordering(index)
+  })
+
+  const system_rows = (container) =>
+    container.querySelectorAll('.rat-event-row-system-message')
+
+  it('renders once however many times the run records it', () => {
+    const prompt = 'the run context, recorded again on every turn'
+    const view = render(
+      <AgentSessionTimeline
+        is_expanded
+        labels={DEFAULT_LABELS}
+        entries={[
+          system_entry(0, prompt),
+          { id: 'a', type: 'thinking', content: 'work', ordering: ordering(1) },
+          system_entry(2, prompt),
+          system_entry(3, prompt)
+        ]}
+      />
+    )
+
+    expect(system_rows(view.container).length).to.equal(1)
+    view.unmount()
+  })
+
+  // The control: a run whose system blocks DIFFER keeps every one of them, so
+  // the check above is not passing because system rows are dropped wholesale.
+  it('keeps every distinct system context', () => {
+    const view = render(
+      <AgentSessionTimeline
+        is_expanded
+        labels={DEFAULT_LABELS}
+        entries={[
+          system_entry(0, 'the first context'),
+          system_entry(1, 'a reminder injected later')
+        ]}
+      />
+    )
+
+    expect(system_rows(view.container).length).to.equal(2)
+    view.unmount()
+  })
+})
