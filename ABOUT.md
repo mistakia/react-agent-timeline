@@ -7,8 +7,15 @@ description: >-
 base_uri: user:repository/active/react-agent-timeline/ABOUT.md
 created_at: '2026-09-04T20:06:25.055Z'
 entity_id: f2b29d0d-b7f3-4b59-bf6e-66233501e98e
+observations:
+  - >-
+    [finding] 2026-09-09 The jump-clearance reserve added in 2310c80 is unconditional, so a list
+    scrolled to the bottom holds 33px of empty ground with no control in it — 10 percent of the
+    320px in-app control, and the default live-tailing state. Making it conditional on the control
+    showing cannot move the panel, because the control only appears once the list already exceeds
+    its max-height.
 public_read: false
-updated_at: '2026-09-04T20:06:25.055Z'
+updated_at: '2026-09-10T03:33:45.541Z'
 user_public_key: 10ba842b1307fd60475b887df61ccc7e697970a2d222e7cbf011e51f5de3349b
 ---
 
