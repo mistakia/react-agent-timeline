@@ -186,12 +186,47 @@ describe('the collapsed surface names what it shows', () => {
     view.unmount()
   })
 
-  // The seam for a consumer whose own heading already says what the panel is.
-  it('drops the caption when the consumer labels it with an empty string', () => {
+  // A FINISHED run has no latest step worth reporting, so a consumer rendering
+  // one collapses the panel to its footer.
+  it('shows no row at all when the collapsed latest is turned off', () => {
     const view = render(
-      <AgentSessionTimeline entries={entries} labels={{ latest: '' }} />
+      <AgentSessionTimeline
+        entries={entries}
+        show_latest_when_collapsed={false}
+        on_toggle_expanded={() => {}}
+      />
     )
     expect(view.container.querySelector('.rat-timeline-latest')).to.equal(null)
+    expect(view.container.querySelector('.rat-timeline-entries')).to.equal(null)
+    expect(view.text()).to.not.contain('second step')
+    // The run is still reachable -- the control is the only way to it now.
+    expect(view.text()).to.contain(DEFAULT_LABELS.expand)
+    view.unmount()
+  })
+
+  // At the two-row threshold the control is suppressed on a one-row run, which
+  // over a silent collapse would leave the run unreachable.
+  it('still offers the control for a one-row run that shows nothing', () => {
+    const view = render(
+      <AgentSessionTimeline
+        entries={[entries[0]]}
+        show_latest_when_collapsed={false}
+        on_toggle_expanded={() => {}}
+      />
+    )
+    expect(view.text()).to.contain(DEFAULT_LABELS.expand)
+    view.unmount()
+  })
+
+  // Expanding is unchanged by the flag: it is about the COLLAPSED panel only.
+  it('renders the whole run when expanded with the collapsed latest off', () => {
+    const view = render(
+      <AgentSessionTimeline
+        is_expanded
+        entries={entries}
+        show_latest_when_collapsed={false}
+      />
+    )
     expect(view.text()).to.contain('second step')
     view.unmount()
   })

@@ -43,6 +43,7 @@ export default function AgentSessionTimeline({
   duration_ms,
   started_at_ms,
   is_running = false,
+  show_latest_when_collapsed = true,
   hide_noise = true,
   resolve_tool_name,
   resolve_tool_argument,
@@ -107,16 +108,33 @@ export default function AgentSessionTimeline({
   if (is_expanded) class_names.push('rat-timeline-expanded')
   if (className) class_names.push(className)
 
+  // WHETHER THE COLLAPSED PANEL SHOWS ANYTHING AT ALL. The latest row is a
+  // report on a run IN PROGRESS -- it is how a reader watching one knows work is
+  // still happening and what the agent is doing right now. Over a run that
+  // FINISHED it reports an edge that has stopped moving, and whichever step
+  // happened to be last then reads as a conclusion. A consumer rendering a
+  // finished run turns it off and offers the whole run instead.
+  const is_collapsed_silent = !is_expanded && !show_latest_when_collapsed
+
   // Collapsed carries the row whole -- its result included, so an errored call
   // still colours the line -- but not expandable: a disclosure on a one-line
   // status is a control the reader cannot use without the panel growing.
-  const visible = is_expanded ? rows : latest ? [latest] : []
+  const visible = is_expanded
+    ? rows
+    : latest && !is_collapsed_silent
+      ? [latest]
+      : []
 
   // Counted over ROWS rather than entries, so the control is offered only when
   // expanding actually shows more than the collapsed line already does. Against
   // the entry count it could promise a fuller run and open onto the same single
   // row, once results were folded into their calls and empty entries dropped.
-  const can_toggle = Boolean(on_toggle_expanded) && rows.length > 1
+  //
+  // A SILENT COLLAPSE MOVES THE THRESHOLD TO ONE, because there the control is
+  // the only way to reach the run at all -- at a threshold of two, a one-row run
+  // would render as a footer with nothing behind it.
+  const can_toggle =
+    Boolean(on_toggle_expanded) && rows.length > (is_collapsed_silent ? 0 : 1)
   const has_footer =
     can_toggle || Boolean(duration_text) || is_running || tool_call_count > 0
 
@@ -126,15 +144,7 @@ export default function AgentSessionTimeline({
   // of those reads a moving line as a static one. It is on the same line as the
   // row rather than above it, because the collapsed surface is a status line
   // and a second line would double the height of the thing it labels.
-  //
-  // AN EMPTY LABEL SUPPRESSES IT, which is the seam for a consumer that has
-  // already said what the panel is — a surface heading directly above the
-  // timeline makes the inline caption a second answer to a question the reader
-  // is no longer asking. Suppression is the consumer's word rather than a flag
-  // because the caption IS the label: a `show_latest_caption={false}` beside a
-  // `latest` string would be two controls over one piece of text.
-  const show_latest_caption =
-    !is_expanded && visible.length > 0 && Boolean(resolved_labels.latest)
+  const show_latest_caption = !is_expanded && visible.length > 0
 
   return (
     <div className={class_names.join(' ')}>
@@ -142,32 +152,37 @@ export default function AgentSessionTimeline({
           wrapper exists. The control floats over the list, so it needs an
           ancestor that is neither the scroll container (it would scroll away
           with the content) nor the whole timeline (it would float over the
-          footer). This element is exactly the list's box and does not scroll. */}
-      <div className="rat-timeline-body">
-        <div className="rat-timeline-entries" ref={scroll_ref}>
-          {show_latest_caption ? (
-            <span className="rat-timeline-latest">
-              {resolved_labels.latest}
-            </span>
-          ) : null}
-          {visible.length === 0 ? (
-            <div className="rat-timeline-empty">{resolved_labels.empty}</div>
-          ) : (
-            visible.map((row, index) => (
-              <TimelineEvent
-                key={row.entry.id ?? `rat-entry-${index}`}
-                entry={row.entry}
-                tool_result={row.tool_result}
-                is_expandable={is_expanded}
-                resolve_tool_name={resolve_tool_name}
-                resolve_tool_argument={resolve_tool_argument}
-                labels={resolved_labels}
-              />
-            ))
-          )}
-        </div>
+          footer). This element is exactly the list's box and does not scroll.
 
-        {/* Offered only where it does something: the reader has scrolled away
+          A SILENT COLLAPSE DRAWS NO LIST, not an empty one: the entries element
+          carries its own padding and rules, so an empty copy of it is a band of
+          nothing between the consumer's heading and the footer. */}
+      {is_collapsed_silent ? null : (
+        <div className="rat-timeline-body">
+          <div className="rat-timeline-entries" ref={scroll_ref}>
+            {show_latest_caption ? (
+              <span className="rat-timeline-latest">
+                {resolved_labels.latest}
+              </span>
+            ) : null}
+            {visible.length === 0 ? (
+              <div className="rat-timeline-empty">{resolved_labels.empty}</div>
+            ) : (
+              visible.map((row, index) => (
+                <TimelineEvent
+                  key={row.entry.id ?? `rat-entry-${index}`}
+                  entry={row.entry}
+                  tool_result={row.tool_result}
+                  is_expandable={is_expanded}
+                  resolve_tool_name={resolve_tool_name}
+                  resolve_tool_argument={resolve_tool_argument}
+                  labels={resolved_labels}
+                />
+              ))
+            )}
+          </div>
+
+          {/* Offered only where it does something: the reader has scrolled away
             from the bottom and the newest entry is off screen. A permanently
             visible jump control over an already-pinned view says the view is not
             following when it is.
@@ -177,16 +192,17 @@ export default function AgentSessionTimeline({
             reader scrolled, and the panel it lives in grew and shrank by the
             control's own height underneath whatever they were reading — a
             control whose job is to steady the view was the thing moving it. */}
-        {is_expanded && !is_pinned ? (
-          <button
-            type="button"
-            className="rat-timeline-jump"
-            onClick={scroll_to_bottom}
-          >
-            {resolved_labels.jump_to_latest}
-          </button>
-        ) : null}
-      </div>
+          {is_expanded && !is_pinned ? (
+            <button
+              type="button"
+              className="rat-timeline-jump"
+              onClick={scroll_to_bottom}
+            >
+              {resolved_labels.jump_to_latest}
+            </button>
+          ) : null}
+        </div>
+      )}
 
       {has_footer ? (
         <div className="rat-timeline-footer">
@@ -253,6 +269,10 @@ AgentSessionTimeline.propTypes = {
   // to drive the live elapsed counter.
   started_at_ms: PropTypes.number,
   is_running: PropTypes.bool,
+  // Whether the collapsed panel shows the newest row. Defaulted ON, which is
+  // the live case; a consumer rendering a FINISHED run turns it off so the
+  // panel collapses to its footer and the run is reached by expanding.
+  show_latest_when_collapsed: PropTypes.bool,
   // Whether to drop harness bookkeeping entries. Defaulted ON because they are
   // just under half of a real timeline and none of them is something the agent
   // did; a consumer wanting the raw record turns it off.

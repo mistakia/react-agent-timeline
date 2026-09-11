@@ -14,10 +14,6 @@ export const DEFAULT_LABELS = {
   // The caption on the collapsed surface, naming the one row it shows. Without
   // it that row is just a line of agent output and a reader has no way to know
   // it is the newest event rather than a summary of the whole run.
-  //
-  // Set it to the empty string to render no caption at all — for a consumer
-  // whose own heading sits directly above the panel and has already said what
-  // the row is.
   latest: 'Latest',
   jump_to_latest: 'Jump to latest',
   // Reads ahead of a formatted duration, as in `Took 1m 12s`.
