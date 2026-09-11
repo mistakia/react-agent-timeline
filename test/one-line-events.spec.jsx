@@ -186,6 +186,16 @@ describe('the collapsed surface names what it shows', () => {
     view.unmount()
   })
 
+  // The seam for a consumer whose own heading already says what the panel is.
+  it('drops the caption when the consumer labels it with an empty string', () => {
+    const view = render(
+      <AgentSessionTimeline entries={entries} labels={{ latest: '' }} />
+    )
+    expect(view.container.querySelector('.rat-timeline-latest')).to.equal(null)
+    expect(view.text()).to.contain('second step')
+    view.unmount()
+  })
+
   // The expand control has to read as a control. Its state is on the element
   // rather than only in its word, which is what the stylesheet's glyph and any
   // assistive technology both read.

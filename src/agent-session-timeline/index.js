@@ -126,7 +126,15 @@ export default function AgentSessionTimeline({
   // of those reads a moving line as a static one. It is on the same line as the
   // row rather than above it, because the collapsed surface is a status line
   // and a second line would double the height of the thing it labels.
-  const show_latest_caption = !is_expanded && visible.length > 0
+  //
+  // AN EMPTY LABEL SUPPRESSES IT, which is the seam for a consumer that has
+  // already said what the panel is — a surface heading directly above the
+  // timeline makes the inline caption a second answer to a question the reader
+  // is no longer asking. Suppression is the consumer's word rather than a flag
+  // because the caption IS the label: a `show_latest_caption={false}` beside a
+  // `latest` string would be two controls over one piece of text.
+  const show_latest_caption =
+    !is_expanded && visible.length > 0 && Boolean(resolved_labels.latest)
 
   return (
     <div className={class_names.join(' ')}>
