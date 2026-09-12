@@ -135,7 +135,7 @@ describe('expanded events are one line', () => {
   })
 })
 
-describe('the collapsed surface names what it shows', () => {
+describe('the collapsed surface is the newest event itself', () => {
   const entries = [
     {
       id: 'a',
@@ -153,36 +153,31 @@ describe('the collapsed surface names what it shows', () => {
     }
   ]
 
-  it('captions the collapsed row as the latest event', () => {
+  // The row IS the surface: no caption introduces it, so the newest event's own
+  // words sit beside the panel with nothing between. The consumer's heading
+  // above the panel is what names the row.
+  it('shows the newest event itself, with no caption', () => {
     const view = render(<AgentSessionTimeline entries={entries} />)
 
-    const caption = view.container.querySelector('.rat-timeline-latest')
-    expect(caption).to.not.equal(null)
-    expect(caption.textContent).to.equal(DEFAULT_LABELS.latest)
+    expect(view.container.querySelector('.rat-timeline-latest')).to.equal(null)
+    expect(view.container.querySelectorAll('.rat-event-row')).to.have.length(1)
+    expect(view.text()).to.contain('second step')
     view.unmount()
   })
 
-  it('drops the caption when the whole run is on screen', () => {
+  it('shows the whole run when expanded, still with no caption', () => {
     const view = render(<AgentSessionTimeline is_expanded entries={entries} />)
     expect(view.container.querySelector('.rat-timeline-latest')).to.equal(null)
+    expect(view.container.querySelectorAll('.rat-event-row')).to.have.length(2)
     view.unmount()
   })
 
-  // A caption over nothing would announce a latest event that is not there.
-  it('drops the caption when there is no entry to introduce', () => {
+  // An empty timeline is already its own message, and needs no caption either.
+  it('shows the empty state when there is nothing to introduce', () => {
     const view = render(<AgentSessionTimeline entries={[]} />)
     expect(view.container.querySelector('.rat-timeline-latest')).to.equal(null)
+    expect(view.container.querySelectorAll('.rat-event-row')).to.have.length(0)
     expect(view.text()).to.contain(DEFAULT_LABELS.empty)
-    view.unmount()
-  })
-
-  it('takes the caption word from the labels prop', () => {
-    const view = render(
-      <AgentSessionTimeline entries={entries} labels={{ latest: 'Now' }} />
-    )
-    expect(
-      view.container.querySelector('.rat-timeline-latest').textContent
-    ).to.equal('Now')
     view.unmount()
   })
 
@@ -196,7 +191,7 @@ describe('the collapsed surface names what it shows', () => {
         on_toggle_expanded={() => {}}
       />
     )
-    expect(view.container.querySelector('.rat-timeline-latest')).to.equal(null)
+    expect(view.container.querySelector('.rat-event-row')).to.equal(null)
     expect(view.container.querySelector('.rat-timeline-entries')).to.equal(null)
     expect(view.text()).to.not.contain('second step')
     // The run is still reachable -- the control is the only way to it now.

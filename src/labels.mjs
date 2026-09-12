@@ -11,10 +11,6 @@ export const DEFAULT_LABELS = {
   expand: 'Show full session',
   collapse: 'Show latest only',
   empty: 'No activity yet',
-  // The caption on the collapsed surface, naming the one row it shows. Without
-  // it that row is just a line of agent output and a reader has no way to know
-  // it is the newest event rather than a summary of the whole run.
-  latest: 'Latest',
   jump_to_latest: 'Jump to latest',
   // Reads ahead of a formatted duration, as in `Took 1m 12s`.
   duration: 'Took',

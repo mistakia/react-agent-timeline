@@ -22,38 +22,10 @@
   flex-direction column
   min-width 0
 
-// THE COLLAPSED SURFACE IS ONE LINE: a caption saying what it is, then the row.
+// THE COLLAPSED SURFACE IS THE EVENT ITSELF. The entries list holds a single
+// row, clamped to one line by the row's own rules, and the consumer names what
+// it is with its own heading above the panel -- no caption competes with it.
 //
-// Laid out as a row rather than as a caption stacked over the entry, because
-// this is a status line -- it shows whatever the agent is doing right now and
-// it changes on every live entry, so every pixel of height it takes is height
-// the host panel gains and gives back while someone is reading. The row's own
-// one-line clamp lives in the row stylesheet and now holds in both views.
-.rat-timeline:not(.rat-timeline-expanded) .rat-timeline-entries
-  flex-direction row
-  align-items baseline
-  gap $rat_space
-
-.rat-timeline:not(.rat-timeline-expanded) .rat-event-row
-  flex 1 1 0%
-  min-width 0
-
-// The word that says the line beneath the panel is the NEWEST event and not a
-// summary of the run. Set as a caption -- the same small uppercase the row
-// labels use -- with a rule down its right edge as the only mark separating it
-// from the entry it introduces.
-.rat-timeline-latest
-  flex none
-  align-self center
-  padding-right $rat_space
-  border-right 1px solid $rat_border
-  color $rat_text_subtle
-  font-size $rat_font_size_xs
-  font-weight 600
-  letter-spacing 0.04em
-  text-transform uppercase
-  white-space nowrap
-
 // Expansion is where an unbounded list would grow the host panel instead of
 // scrolling inside it. A fifteen-minute run is hundreds of entries.
 //

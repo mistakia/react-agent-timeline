@@ -138,14 +138,10 @@ export default function AgentSessionTimeline({
   const has_footer =
     can_toggle || Boolean(duration_text) || is_running || tool_call_count > 0
 
-  // The caption that says what the collapsed row IS. Without it the row is one
-  // line of agent output under a panel, indistinguishable from a summary, a
-  // heading or the whole run rendered short -- and a reader who takes it for any
-  // of those reads a moving line as a static one. It is on the same line as the
-  // row rather than above it, because the collapsed surface is a status line
-  // and a second line would double the height of the thing it labels.
-  const show_latest_caption = !is_expanded && visible.length > 0
-
+  // THE COLLAPSED SURFACE IS THE EVENT, WITH NO CAPTION INTRODUCING IT. The
+  // labeling belongs to the consumer: its own heading above the panel is what
+  // says the line underneath is the newest event, and an inline word beside the
+  // row was a second answer to a question the reader was no longer asking.
   return (
     <div className={class_names.join(' ')}>
       {/* THE POSITIONING CONTEXT FOR THE JUMP CONTROL, and the only reason this
@@ -160,11 +156,6 @@ export default function AgentSessionTimeline({
       {is_collapsed_silent ? null : (
         <div className="rat-timeline-body">
           <div className="rat-timeline-entries" ref={scroll_ref}>
-            {show_latest_caption ? (
-              <span className="rat-timeline-latest">
-                {resolved_labels.latest}
-              </span>
-            ) : null}
             {visible.length === 0 ? (
               <div className="rat-timeline-empty">{resolved_labels.empty}</div>
             ) : (
