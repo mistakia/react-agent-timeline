@@ -1,6 +1,6 @@
 ---
 title: react-agent-timeline
-type: repository
+type: text
 description: >-
   Public repository holding a presentational React agent session timeline component, consumed by
   base and league as a SHA-pinned GitHub dependency.
@@ -15,7 +15,7 @@ observations:
     showing cannot move the panel, because the control only appears once the list already exceeds
     its max-height.
 public_read: false
-updated_at: '2026-09-10T03:33:45.541Z'
+updated_at: '2026-09-15T05:49:04.897Z'
 user_public_key: 10ba842b1307fd60475b887df61ccc7e697970a2d222e7cbf011e51f5de3349b
 ---
 
