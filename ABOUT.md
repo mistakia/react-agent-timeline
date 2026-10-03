@@ -14,9 +14,9 @@ observations:
     320px in-app control, and the default live-tailing state. Making it conditional on the control
     showing cannot move the panel, because the control only appears once the list already exceeds
     its max-height.
+owner_identity_uri: user:identity/trashman.md
 public_read: false
 updated_at: '2026-09-15T05:49:04.897Z'
-user_public_key: 10ba842b1307fd60475b887df61ccc7e697970a2d222e7cbf011e51f5de3349b
 ---
 
 ## Purpose
